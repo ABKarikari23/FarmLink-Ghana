@@ -24,6 +24,6 @@ The business model, pilot phases, technology options, and success measures are p
 
 ## GitHub Pages
 
-The HTML demos in [`FounderPitch/`](FounderPitch/) are published as individual GitHub Pages at the preview links above. The GitHub Actions workflow deploys them when files in that folder change on `main`, or when run manually.
+The HTML demos in [`FounderPitch/`](FounderPitch/) are configured to publish as individual GitHub Pages at the preview links above. The GitHub Actions workflow deploys them when files in that folder change on `main`, or when run manually.
 
 To enable publishing for this repository, set **Settings → Pages → Build and deployment → Source** to **GitHub Actions**. After the workflow completes, the demos are available at the links above.
