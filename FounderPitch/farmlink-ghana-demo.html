@@ -1,0 +1,3060 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>FarmLink Ghana: working prototype</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=Figtree:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px);
+  padding-bottom:env(safe-area-inset-bottom,0px);
+  --bg:#F3F5EE; --surface:#FFFFFF; --surface2:#E9EEE3; --ink:#1B2620; --muted:#55645A; --line:#D3DCCB;
+  --canopy:#14382A; --btn:#14382A; --gold:#E3A72F; --gold-soft:#FBF0D3; --clay:#B8502F; --ok:#2E7D4F; --focus:#1D6FD1;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#0F1813; --surface:#16231C; --surface2:#1D2D24; --ink:#E6EEE5; --muted:#A3B3A7; --line:#2B3E33;
+    --canopy:#0A2017; --btn:#2F7A55; --gold-soft:#3A2F12; --clay:#E07A57; --ok:#5CC187; --focus:#7AB2F5;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0F1813; --surface:#16231C; --surface2:#1D2D24; --ink:#E6EEE5; --muted:#A3B3A7; --line:#2B3E33;
+  --canopy:#0A2017; --btn:#2F7A55; --gold-soft:#3A2F12; --clay:#E07A57; --ok:#5CC187; --focus:#7AB2F5;
+}
+*,*::before,*::after{box-sizing:border-box}
+html{scroll-padding-top:env(safe-area-inset-top,0px);-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 'Figtree',system-ui,-apple-system,'Segoe UI',sans-serif}
+h1,h2,h3,.disp{font-family:'Bricolage Grotesque','Trebuchet MS',system-ui,sans-serif;line-height:1.1;margin:0;letter-spacing:-.015em}
+p{margin:0}
+button{font:inherit;color:inherit}
+:focus-visible{outline:3px solid var(--focus);outline-offset:2px}
+small{font-size:13px;color:var(--muted)}
+
+/* header */
+.top{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;max-width:1120px;margin:0 auto;padding:12px 16px}
+.brand{display:flex;align-items:center;gap:10px;font-family:'Bricolage Grotesque',system-ui,sans-serif;font-weight:800;font-size:21px}
+.navtabs{display:flex;gap:4px;background:var(--surface2);padding:4px;border-radius:999px}
+.navtabs button{border:0;background:transparent;padding:8px 16px;border-radius:999px;font-weight:600;cursor:pointer;min-height:40px}
+.navtabs button[aria-selected="true"]{background:var(--btn);color:#fff}
+.banner{background:var(--gold-soft);font-size:14px;padding:8px 16px;text-align:center}
+
+/* demo layout */
+.demo{display:grid;grid-template-columns:minmax(0,400px) minmax(0,1fr);gap:28px;max-width:1120px;margin:0 auto;padding:20px 16px 48px}
+@media (max-width:900px){.demo{grid-template-columns:minmax(0,1fr)}}
+
+/* phone */
+.phone{position:relative;background:var(--surface);border:1px solid var(--line);border-radius:30px;overflow:hidden;display:flex;flex-direction:column;height:min(780px,calc(100dvh - 110px));min-height:640px;box-shadow:0 24px 50px -24px rgba(10,32,23,.45)}
+@media (max-width:900px){.phone{height:auto;min-height:620px}}
+.app-head{padding:16px 16px 12px;border-bottom:1px solid var(--line);background:var(--surface)}
+.who b{font-family:'Bricolage Grotesque',system-ui,sans-serif;font-size:20px;display:block}
+.rtabs{display:grid;grid-template-columns:repeat(3,1fr);gap:4px;background:var(--surface2);border-radius:14px;padding:4px;margin-top:12px}
+.rtab{position:relative;border:0;background:transparent;border-radius:11px;padding:9px 4px;font-weight:600;cursor:pointer;min-height:42px}
+.rtab[aria-selected="true"]{background:var(--surface);box-shadow:0 1px 3px rgba(0,0,0,.18)}
+.dot{position:absolute;top:3px;right:6px;background:var(--clay);color:#fff;font-style:normal;font-size:11px;min-width:18px;height:18px;border-radius:9px;display:grid;place-items:center;padding:0 4px}
+.app-body{flex:1;overflow:auto;padding:14px 14px 22px}
+@media (max-width:900px){.app-body{overflow:visible}}
+.seg{display:flex;gap:6px;margin-bottom:12px}
+.seg button,.chip-f{border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:7px 14px;font-weight:600;font-size:14px;cursor:pointer;min-height:38px}
+.seg button[aria-pressed="true"],.chip-f[aria-pressed="true"]{background:var(--btn);color:#fff;border-color:var(--btn)}
+.chips{display:flex;gap:6px;overflow-x:auto;padding-bottom:10px;margin-bottom:4px}
+.chip-f{white-space:nowrap}
+.item{display:flex;gap:12px;align-items:center;width:100%;text-align:left;background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:12px;margin-bottom:10px;cursor:pointer}
+.item:hover:not(:disabled){border-color:var(--btn)}
+.item:disabled{opacity:.5;cursor:not-allowed}
+.ico{flex:none;width:46px;height:46px;border-radius:14px;background:var(--gold-soft);display:grid;place-items:center;font-size:26px}
+.ico.sm{width:40px;height:40px;font-size:22px}
+.meta{flex:1;min-width:0;display:flex;flex-direction:column;gap:1px}
+.meta b{font-size:16px}
+.meta em{font-style:normal;font-size:14px;color:var(--muted)}
+.ver{color:var(--ok);font-weight:600}
+.price{text-align:right;font-weight:700;font-size:17px;display:flex;flex-direction:column}
+.price small{font-weight:500}
+.empty{padding:28px 12px;text-align:center;color:var(--muted)}
+.empty b{display:block;color:var(--ink);margin-bottom:4px;font-size:16px}
+
+/* orders */
+.ord{border:1px solid var(--line);border-radius:16px;padding:12px;margin-bottom:12px;background:var(--surface)}
+.ord>header{display:flex;gap:10px;align-items:flex-start}
+.ord>header>div{flex:1;min-width:0}
+.ord>header b{display:block}
+.chip{font-size:12px;font-weight:700;border-radius:999px;padding:4px 10px;white-space:nowrap;background:var(--surface2)}
+.s-escrow{background:var(--gold-soft)}
+.s-arrived{background:var(--gold);color:#241a05}
+.s-released{background:var(--ok);color:#fff}
+.track{display:flex;align-items:center;gap:8px;margin:14px 0 4px;font-size:13px;color:var(--muted)}
+.rail{position:relative;flex:1;height:8px;border-radius:4px;background:var(--surface2)}
+.rail i{position:absolute;left:0;top:0;bottom:0;border-radius:4px;background:var(--btn);transition:width .4s linear}
+.rail b{position:absolute;top:50%;transform:translate(-50%,-50%);font-size:20px;transition:left .4s linear}
+.confirm{margin-top:12px;display:grid;gap:10px}
+.sms{background:var(--surface2);border-radius:14px 14px 14px 4px;padding:10px 12px;font-size:14px}
+.sms small{display:block}
+label{display:grid;gap:4px;font-weight:600;font-size:14px}
+input,select{font:inherit;color:var(--ink);background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:11px 12px;min-height:44px;width:100%}
+.btn{border:0;border-radius:12px;padding:12px 16px;font-weight:700;cursor:pointer;min-height:46px;width:100%}
+.btn.primary{background:var(--btn);color:#fff}
+.btn.gold{background:var(--gold);color:#241a05}
+.btn.ghost{background:var(--surface2)}
+.btn.slim{width:auto;padding:8px 14px;min-height:40px}
+.rows{display:grid;gap:6px;margin-top:10px;font-size:14px}
+.rows div{display:flex;justify-content:space-between;gap:12px}
+.rows .tot{border-top:1px solid var(--line);padding-top:8px;font-weight:700;font-size:16px}
+.wallet{background:var(--canopy);color:#F1F5EC;border-radius:18px;padding:16px;margin-bottom:14px}
+.wallet small{color:#B9C9BF}
+.wallet .big{font-family:'Bricolage Grotesque',system-ui,sans-serif;font-size:32px;font-weight:800;line-height:1.1}
+.sect{margin:18px 0 8px;font-size:17px}
+.form{display:grid;gap:10px;border:1px dashed var(--line);border-radius:16px;padding:12px}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+
+/* sheet */
+.sheetwrap{position:absolute;inset:0;background:rgba(10,20,15,.55);display:flex;align-items:flex-end;z-index:5}
+@media (max-width:900px){.sheetwrap{position:fixed}}
+.sheet{background:var(--surface);width:100%;max-width:520px;margin:0 auto;border-radius:24px 24px 0 0;padding:18px 16px calc(18px + env(safe-area-inset-bottom,0px));max-height:92%;overflow:auto}
+.sheet h3{font-size:22px;margin-bottom:4px}
+.stepper{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:14px 0}
+.stepper button{width:48px;height:48px;border-radius:14px;border:1px solid var(--line);background:var(--surface2);font-size:22px;font-weight:700;cursor:pointer}
+.stepper output{font-family:'Bricolage Grotesque',system-ui,sans-serif;font-size:28px;font-weight:800;text-align:center;flex:1}
+.nets{display:grid;gap:8px;margin:10px 0}
+.nets button{display:flex;justify-content:space-between;align-items:center;border:2px solid var(--line);background:var(--surface);border-radius:14px;padding:12px;font-weight:600;cursor:pointer;min-height:48px}
+.nets button[aria-pressed="true"]{border-color:var(--btn);background:var(--surface2)}
+.ussd{background:#1b1f1c;color:#E9F2EA;border-radius:16px;padding:16px;font-size:15px;margin:10px 0;display:grid;gap:10px}
+.ussd small{color:#9db0a3}
+.ussd input{background:#2a302c;color:#fff;border-color:#3b443e;text-align:center;letter-spacing:.5em;font-size:20px}
+
+/* panel */
+.panel{background:var(--canopy);color:#F1F5EC;border-radius:24px;padding:24px;align-self:start;position:sticky;top:16px;display:grid;gap:22px}
+@media (max-width:900px){.panel{position:static}}
+.panel h2{font-size:26px}
+.panel small{color:#B9C9BF}
+.mbar{display:flex;height:22px;border-radius:999px;overflow:hidden;background:rgba(255,255,255,.12);margin:12px 0}
+.mbar i{display:block;transition:flex .5s}
+.legend{display:grid;grid-template-columns:1fr 1fr;gap:8px 16px;font-size:14px}
+.legend div{display:flex;align-items:center;gap:8px}
+.legend span.sw{width:12px;height:12px;border-radius:4px;flex:none}
+.legend b{margin-left:auto}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:12px}
+.stats div{background:rgba(255,255,255,.08);border-radius:14px;padding:12px}
+.stats b{display:block;font-family:'Bricolage Grotesque',system-ui,sans-serif;font-size:24px;line-height:1.15}
+ol.steps{list-style:none;margin:12px 0 0;padding:0;display:grid;gap:10px}
+ol.steps li{display:flex;gap:12px;align-items:center;opacity:.55}
+ol.steps li .c{width:26px;height:26px;border-radius:50%;border:2px solid rgba(255,255,255,.4);display:grid;place-items:center;font-size:13px;flex:none}
+ol.steps li.done{opacity:1}
+ol.steps li.done .c{background:#6FCB98;border-color:#6FCB98;color:#0A2017;font-weight:800}
+ol.steps li.now{opacity:1;font-weight:700}
+ol.steps li.now .c{border-color:var(--gold);box-shadow:0 0 0 4px rgba(227,167,47,.3)}
+.hint{background:rgba(227,167,47,.16);border-left:4px solid var(--gold);border-radius:12px;padding:12px 14px;display:grid;gap:10px;margin-top:14px}
+.hint .btn{background:var(--gold);color:#241a05;width:auto;justify-self:start;padding:9px 14px;min-height:40px}
+.log{display:grid;gap:8px;font-size:14px;margin-top:10px}
+.log div{display:flex;gap:10px}
+.log time{color:#B9C9BF;flex:none;font-variant-numeric:tabular-nums}
+.link{background:none;border:0;color:#F1F5EC;text-decoration:underline;cursor:pointer;padding:6px 0;font-weight:600;justify-self:start}
+
+.headrow{display:flex;justify-content:space-between;align-items:flex-start;gap:8px}
+.lang{display:flex;gap:3px;background:var(--surface2);padding:3px;border-radius:999px;flex:none}
+.lang button{border:0;background:transparent;border-radius:999px;padding:6px 11px;font-weight:600;font-size:13px;cursor:pointer;min-height:34px}
+.lang button[aria-pressed="true"]{background:var(--btn);color:#fff}
+.qrbox{background:#fff;padding:14px;border-radius:14px;width:min(230px,72%);margin:0 auto;display:grid;place-items:center;color:#000;font-size:28px}
+.qrbox svg{width:100%;height:auto;display:block}
+.link2{background:none;border:0;color:var(--muted);text-decoration:underline;cursor:pointer;padding:8px 0;font-weight:600;min-height:40px;justify-self:start}
+.s-disputed{background:var(--clay);color:#fff}
+.case{background:rgba(255,255,255,.08);border-radius:14px;padding:12px;display:grid;gap:8px;margin-top:10px}
+.case .acts{display:flex;gap:8px;flex-wrap:wrap}
+.case .btn{width:auto;background:var(--gold);color:#241a05;padding:8px 12px;min-height:40px;font-size:14px}
+.contact{display:flex;gap:10px;flex-wrap:wrap;justify-content:center}
+.contact a{text-decoration:none;display:inline-flex;align-items:center;justify-content:center}
+.who-line{margin-top:16px;color:var(--muted);font-size:15px}
+.pilot{font-size:13px;color:var(--ink);background:var(--gold-soft);border-radius:12px;padding:8px 12px;margin:0 0 10px}
+.disc{background:var(--gold-soft);border-radius:14px;padding:12px 16px;font-size:15px;margin-top:20px}
+ol.flow{margin:0;padding-left:22px;display:grid;gap:8px}
+.cols2{columns:2;column-gap:28px;margin:0;padding-left:20px}
+@media (max-width:640px){.cols2{columns:1}}
+.cour{display:flex;gap:12px;align-items:center;width:100%;text-align:left;background:var(--surface);border:2px solid var(--line);border-radius:14px;padding:10px;margin-bottom:8px;cursor:pointer}
+.cour[aria-pressed="true"]{border-color:var(--btn);background:var(--surface2)}
+.cour:disabled{opacity:.55;cursor:not-allowed}
+.best{background:var(--gold);color:#241a05;font-size:11px;font-weight:700;border-radius:999px;padding:2px 8px;margin-left:6px;vertical-align:middle;white-space:nowrap}
+.rate{display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin-top:10px}
+.rate .chip-f{padding:5px 10px;min-height:34px}
+/* toast */
+.toast{position:fixed;left:50%;bottom:calc(18px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:#1b1f1c;color:#fff;padding:12px 18px;border-radius:14px;z-index:20;max-width:92vw;font-weight:600;box-shadow:0 10px 30px rgba(0,0,0,.35)}
+
+/* investors */
+.inv{max-width:1000px;margin:0 auto;padding:24px 16px 64px}
+.inv section{margin-top:56px}
+.inv h2{font-size:clamp(26px,4vw,36px);margin-bottom:14px}
+.hero{display:grid;grid-template-columns:minmax(0,1.5fr) minmax(0,1fr);gap:28px;align-items:end;margin-top:12px}
+@media (max-width:800px){.hero{grid-template-columns:1fr}}
+.hero h1{font-size:clamp(36px,7vw,64px);font-weight:800}
+.hero p.lead{font-size:18px;color:var(--muted);margin-top:16px;max-width:52ch}
+.ask{background:var(--canopy);color:#F1F5EC;border-radius:24px;padding:24px}
+.ask .disp{font-size:44px;font-weight:800;line-height:1}
+.ask small{color:#B9C9BF;display:block;margin-top:8px}
+.ask .btn{margin-top:18px;background:var(--gold);color:#241a05}
+.cols{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+@media (max-width:760px){.cols{grid-template-columns:1fr}}
+.card{border:1px solid var(--line);border-radius:18px;padding:18px;background:var(--surface)}
+.card h3{font-size:20px;margin-bottom:8px}
+.card ul{margin:0;padding-left:20px;display:grid;gap:6px}
+.phase{display:grid;grid-template-columns:150px minmax(0,1fr);gap:8px 20px;padding:18px 0;border-top:1px solid var(--line)}
+@media (max-width:700px){.phase{grid-template-columns:1fr}}
+.phase h3{font-size:20px}
+.pbar{height:14px;border-radius:7px;background:var(--surface2);overflow:hidden;margin:8px 0}
+.pbar i{display:block;height:100%;background:var(--btn);border-radius:7px}
+.phase ul{margin:6px 0 0;padding-left:20px;font-size:15px;color:var(--muted)}
+.roi{background:var(--surface);border:1px solid var(--line);border-radius:22px;padding:22px;display:grid;gap:18px}
+.roi input[type=range]{padding:0;min-height:32px;accent-color:var(--btn)}
+.presets{display:flex;gap:8px;flex-wrap:wrap}
+.gauge{height:18px;border-radius:9px;background:var(--surface2);overflow:hidden}
+.gauge i{display:block;height:100%;background:var(--gold);transition:width .3s}
+.nums{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+@media (max-width:640px){.nums{grid-template-columns:1fr}}
+.nums div{background:var(--surface2);border-radius:14px;padding:12px}
+.nums b{display:block;font-family:'Bricolage Grotesque',system-ui,sans-serif;font-size:26px}
+.good{color:var(--ok)} .bad{color:var(--clay)}
+table{border-collapse:collapse;width:100%;font-size:15px}
+td,th{text-align:left;padding:10px 8px;border-top:1px solid var(--line);vertical-align:top}
+th{font-weight:700}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+</head>
+<body>
+<header class="top">
+  <div class="brand">
+    <svg width="30" height="30" viewBox="0 0 32 32" aria-hidden="true"><circle cx="16" cy="16" r="16" fill="#14382A"/><path d="M9 22c0-8 5-12 14-12 0 8-4 13-12 13l-2 2" fill="none" stroke="#E3A72F" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    FarmLink Ghana
+  </div>
+  <nav class="navtabs" role="tablist" aria-label="Sections">
+    <button role="tab" id="t-demo" data-a="tab" data-tab="demo" aria-selected="true">Live demo</button>
+    <button role="tab" id="t-inv" data-a="tab" data-tab="inv" aria-selected="false">For investors</button>
+  </nav>
+</header>
+<div class="banner">This is a working prototype. Produce, farmers and payments are sample data and simulated.</div>
+<main id="app"></main>
+<div id="toast" class="toast" hidden></div>
+
+<script>
+//---------------------------------------------------------------------
+//
+// QR Code Generator for JavaScript
+//
+// Copyright (c) 2009 Kazuhiko Arase
+//
+// URL: http://www.d-project.com/
+//
+// Licensed under the MIT license:
+//  http://www.opensource.org/licenses/mit-license.php
+//
+// The word 'QR Code' is registered trademark of
+// DENSO WAVE INCORPORATED
+//  http://www.denso-wave.com/qrcode/faqpatent-e.html
+//
+//---------------------------------------------------------------------
+
+var qrcode = function() {
+
+  //---------------------------------------------------------------------
+  // qrcode
+  //---------------------------------------------------------------------
+
+  /**
+   * qrcode
+   * @param typeNumber 1 to 40
+   * @param errorCorrectionLevel 'L','M','Q','H'
+   */
+  var qrcode = function(typeNumber, errorCorrectionLevel) {
+
+    var PAD0 = 0xEC;
+    var PAD1 = 0x11;
+
+    var _typeNumber = typeNumber;
+    var _errorCorrectionLevel = QRErrorCorrectionLevel[errorCorrectionLevel];
+    var _modules = null;
+    var _moduleCount = 0;
+    var _dataCache = null;
+    var _dataList = [];
+
+    var _this = {};
+
+    var makeImpl = function(test, maskPattern) {
+
+      _moduleCount = _typeNumber * 4 + 17;
+      _modules = function(moduleCount) {
+        var modules = new Array(moduleCount);
+        for (var row = 0; row < moduleCount; row += 1) {
+          modules[row] = new Array(moduleCount);
+          for (var col = 0; col < moduleCount; col += 1) {
+            modules[row][col] = null;
+          }
+        }
+        return modules;
+      }(_moduleCount);
+
+      setupPositionProbePattern(0, 0);
+      setupPositionProbePattern(_moduleCount - 7, 0);
+      setupPositionProbePattern(0, _moduleCount - 7);
+      setupPositionAdjustPattern();
+      setupTimingPattern();
+      setupTypeInfo(test, maskPattern);
+
+      if (_typeNumber >= 7) {
+        setupTypeNumber(test);
+      }
+
+      if (_dataCache == null) {
+        _dataCache = createData(_typeNumber, _errorCorrectionLevel, _dataList);
+      }
+
+      mapData(_dataCache, maskPattern);
+    };
+
+    var setupPositionProbePattern = function(row, col) {
+
+      for (var r = -1; r <= 7; r += 1) {
+
+        if (row + r <= -1 || _moduleCount <= row + r) continue;
+
+        for (var c = -1; c <= 7; c += 1) {
+
+          if (col + c <= -1 || _moduleCount <= col + c) continue;
+
+          if ( (0 <= r && r <= 6 && (c == 0 || c == 6) )
+              || (0 <= c && c <= 6 && (r == 0 || r == 6) )
+              || (2 <= r && r <= 4 && 2 <= c && c <= 4) ) {
+            _modules[row + r][col + c] = true;
+          } else {
+            _modules[row + r][col + c] = false;
+          }
+        }
+      }
+    };
+
+    var getBestMaskPattern = function() {
+
+      var minLostPoint = 0;
+      var pattern = 0;
+
+      for (var i = 0; i < 8; i += 1) {
+
+        makeImpl(true, i);
+
+        var lostPoint = QRUtil.getLostPoint(_this);
+
+        if (i == 0 || minLostPoint > lostPoint) {
+          minLostPoint = lostPoint;
+          pattern = i;
+        }
+      }
+
+      return pattern;
+    };
+
+    var setupTimingPattern = function() {
+
+      for (var r = 8; r < _moduleCount - 8; r += 1) {
+        if (_modules[r][6] != null) {
+          continue;
+        }
+        _modules[r][6] = (r % 2 == 0);
+      }
+
+      for (var c = 8; c < _moduleCount - 8; c += 1) {
+        if (_modules[6][c] != null) {
+          continue;
+        }
+        _modules[6][c] = (c % 2 == 0);
+      }
+    };
+
+    var setupPositionAdjustPattern = function() {
+
+      var pos = QRUtil.getPatternPosition(_typeNumber);
+
+      for (var i = 0; i < pos.length; i += 1) {
+
+        for (var j = 0; j < pos.length; j += 1) {
+
+          var row = pos[i];
+          var col = pos[j];
+
+          if (_modules[row][col] != null) {
+            continue;
+          }
+
+          for (var r = -2; r <= 2; r += 1) {
+
+            for (var c = -2; c <= 2; c += 1) {
+
+              if (r == -2 || r == 2 || c == -2 || c == 2
+                  || (r == 0 && c == 0) ) {
+                _modules[row + r][col + c] = true;
+              } else {
+                _modules[row + r][col + c] = false;
+              }
+            }
+          }
+        }
+      }
+    };
+
+    var setupTypeNumber = function(test) {
+
+      var bits = QRUtil.getBCHTypeNumber(_typeNumber);
+
+      for (var i = 0; i < 18; i += 1) {
+        var mod = (!test && ( (bits >> i) & 1) == 1);
+        _modules[Math.floor(i / 3)][i % 3 + _moduleCount - 8 - 3] = mod;
+      }
+
+      for (var i = 0; i < 18; i += 1) {
+        var mod = (!test && ( (bits >> i) & 1) == 1);
+        _modules[i % 3 + _moduleCount - 8 - 3][Math.floor(i / 3)] = mod;
+      }
+    };
+
+    var setupTypeInfo = function(test, maskPattern) {
+
+      var data = (_errorCorrectionLevel << 3) | maskPattern;
+      var bits = QRUtil.getBCHTypeInfo(data);
+
+      // vertical
+      for (var i = 0; i < 15; i += 1) {
+
+        var mod = (!test && ( (bits >> i) & 1) == 1);
+
+        if (i < 6) {
+          _modules[i][8] = mod;
+        } else if (i < 8) {
+          _modules[i + 1][8] = mod;
+        } else {
+          _modules[_moduleCount - 15 + i][8] = mod;
+        }
+      }
+
+      // horizontal
+      for (var i = 0; i < 15; i += 1) {
+
+        var mod = (!test && ( (bits >> i) & 1) == 1);
+
+        if (i < 8) {
+          _modules[8][_moduleCount - i - 1] = mod;
+        } else if (i < 9) {
+          _modules[8][15 - i - 1 + 1] = mod;
+        } else {
+          _modules[8][15 - i - 1] = mod;
+        }
+      }
+
+      // fixed module
+      _modules[_moduleCount - 8][8] = (!test);
+    };
+
+    var mapData = function(data, maskPattern) {
+
+      var inc = -1;
+      var row = _moduleCount - 1;
+      var bitIndex = 7;
+      var byteIndex = 0;
+      var maskFunc = QRUtil.getMaskFunction(maskPattern);
+
+      for (var col = _moduleCount - 1; col > 0; col -= 2) {
+
+        if (col == 6) col -= 1;
+
+        while (true) {
+
+          for (var c = 0; c < 2; c += 1) {
+
+            if (_modules[row][col - c] == null) {
+
+              var dark = false;
+
+              if (byteIndex < data.length) {
+                dark = ( ( (data[byteIndex] >>> bitIndex) & 1) == 1);
+              }
+
+              var mask = maskFunc(row, col - c);
+
+              if (mask) {
+                dark = !dark;
+              }
+
+              _modules[row][col - c] = dark;
+              bitIndex -= 1;
+
+              if (bitIndex == -1) {
+                byteIndex += 1;
+                bitIndex = 7;
+              }
+            }
+          }
+
+          row += inc;
+
+          if (row < 0 || _moduleCount <= row) {
+            row -= inc;
+            inc = -inc;
+            break;
+          }
+        }
+      }
+    };
+
+    var createBytes = function(buffer, rsBlocks) {
+
+      var offset = 0;
+
+      var maxDcCount = 0;
+      var maxEcCount = 0;
+
+      var dcdata = new Array(rsBlocks.length);
+      var ecdata = new Array(rsBlocks.length);
+
+      for (var r = 0; r < rsBlocks.length; r += 1) {
+
+        var dcCount = rsBlocks[r].dataCount;
+        var ecCount = rsBlocks[r].totalCount - dcCount;
+
+        maxDcCount = Math.max(maxDcCount, dcCount);
+        maxEcCount = Math.max(maxEcCount, ecCount);
+
+        dcdata[r] = new Array(dcCount);
+
+        for (var i = 0; i < dcdata[r].length; i += 1) {
+          dcdata[r][i] = 0xff & buffer.getBuffer()[i + offset];
+        }
+        offset += dcCount;
+
+        var rsPoly = QRUtil.getErrorCorrectPolynomial(ecCount);
+        var rawPoly = qrPolynomial(dcdata[r], rsPoly.getLength() - 1);
+
+        var modPoly = rawPoly.mod(rsPoly);
+        ecdata[r] = new Array(rsPoly.getLength() - 1);
+        for (var i = 0; i < ecdata[r].length; i += 1) {
+          var modIndex = i + modPoly.getLength() - ecdata[r].length;
+          ecdata[r][i] = (modIndex >= 0)? modPoly.getAt(modIndex) : 0;
+        }
+      }
+
+      var totalCodeCount = 0;
+      for (var i = 0; i < rsBlocks.length; i += 1) {
+        totalCodeCount += rsBlocks[i].totalCount;
+      }
+
+      var data = new Array(totalCodeCount);
+      var index = 0;
+
+      for (var i = 0; i < maxDcCount; i += 1) {
+        for (var r = 0; r < rsBlocks.length; r += 1) {
+          if (i < dcdata[r].length) {
+            data[index] = dcdata[r][i];
+            index += 1;
+          }
+        }
+      }
+
+      for (var i = 0; i < maxEcCount; i += 1) {
+        for (var r = 0; r < rsBlocks.length; r += 1) {
+          if (i < ecdata[r].length) {
+            data[index] = ecdata[r][i];
+            index += 1;
+          }
+        }
+      }
+
+      return data;
+    };
+
+    var createData = function(typeNumber, errorCorrectionLevel, dataList) {
+
+      var rsBlocks = QRRSBlock.getRSBlocks(typeNumber, errorCorrectionLevel);
+
+      var buffer = qrBitBuffer();
+
+      for (var i = 0; i < dataList.length; i += 1) {
+        var data = dataList[i];
+        buffer.put(data.getMode(), 4);
+        buffer.put(data.getLength(), QRUtil.getLengthInBits(data.getMode(), typeNumber) );
+        data.write(buffer);
+      }
+
+      // calc num max data.
+      var totalDataCount = 0;
+      for (var i = 0; i < rsBlocks.length; i += 1) {
+        totalDataCount += rsBlocks[i].dataCount;
+      }
+
+      if (buffer.getLengthInBits() > totalDataCount * 8) {
+        throw 'code length overflow. ('
+          + buffer.getLengthInBits()
+          + '>'
+          + totalDataCount * 8
+          + ')';
+      }
+
+      // end code
+      if (buffer.getLengthInBits() + 4 <= totalDataCount * 8) {
+        buffer.put(0, 4);
+      }
+
+      // padding
+      while (buffer.getLengthInBits() % 8 != 0) {
+        buffer.putBit(false);
+      }
+
+      // padding
+      while (true) {
+
+        if (buffer.getLengthInBits() >= totalDataCount * 8) {
+          break;
+        }
+        buffer.put(PAD0, 8);
+
+        if (buffer.getLengthInBits() >= totalDataCount * 8) {
+          break;
+        }
+        buffer.put(PAD1, 8);
+      }
+
+      return createBytes(buffer, rsBlocks);
+    };
+
+    _this.addData = function(data, mode) {
+
+      mode = mode || 'Byte';
+
+      var newData = null;
+
+      switch(mode) {
+      case 'Numeric' :
+        newData = qrNumber(data);
+        break;
+      case 'Alphanumeric' :
+        newData = qrAlphaNum(data);
+        break;
+      case 'Byte' :
+        newData = qr8BitByte(data);
+        break;
+      case 'Kanji' :
+        newData = qrKanji(data);
+        break;
+      default :
+        throw 'mode:' + mode;
+      }
+
+      _dataList.push(newData);
+      _dataCache = null;
+    };
+
+    _this.isDark = function(row, col) {
+      if (row < 0 || _moduleCount <= row || col < 0 || _moduleCount <= col) {
+        throw row + ',' + col;
+      }
+      return _modules[row][col];
+    };
+
+    _this.getModuleCount = function() {
+      return _moduleCount;
+    };
+
+    _this.make = function() {
+      if (_typeNumber < 1) {
+        var typeNumber = 1;
+
+        for (; typeNumber < 40; typeNumber++) {
+          var rsBlocks = QRRSBlock.getRSBlocks(typeNumber, _errorCorrectionLevel);
+          var buffer = qrBitBuffer();
+
+          for (var i = 0; i < _dataList.length; i++) {
+            var data = _dataList[i];
+            buffer.put(data.getMode(), 4);
+            buffer.put(data.getLength(), QRUtil.getLengthInBits(data.getMode(), typeNumber) );
+            data.write(buffer);
+          }
+
+          var totalDataCount = 0;
+          for (var i = 0; i < rsBlocks.length; i++) {
+            totalDataCount += rsBlocks[i].dataCount;
+          }
+
+          if (buffer.getLengthInBits() <= totalDataCount * 8) {
+            break;
+          }
+        }
+
+        _typeNumber = typeNumber;
+      }
+
+      makeImpl(false, getBestMaskPattern() );
+    };
+
+    _this.createTableTag = function(cellSize, margin) {
+
+      cellSize = cellSize || 2;
+      margin = (typeof margin == 'undefined')? cellSize * 4 : margin;
+
+      var qrHtml = '';
+
+      qrHtml += '<table style="';
+      qrHtml += ' border-width: 0px; border-style: none;';
+      qrHtml += ' border-collapse: collapse;';
+      qrHtml += ' padding: 0px; margin: ' + margin + 'px;';
+      qrHtml += '">';
+      qrHtml += '<tbody>';
+
+      for (var r = 0; r < _this.getModuleCount(); r += 1) {
+
+        qrHtml += '<tr>';
+
+        for (var c = 0; c < _this.getModuleCount(); c += 1) {
+          qrHtml += '<td style="';
+          qrHtml += ' border-width: 0px; border-style: none;';
+          qrHtml += ' border-collapse: collapse;';
+          qrHtml += ' padding: 0px; margin: 0px;';
+          qrHtml += ' width: ' + cellSize + 'px;';
+          qrHtml += ' height: ' + cellSize + 'px;';
+          qrHtml += ' background-color: ';
+          qrHtml += _this.isDark(r, c)? '#000000' : '#ffffff';
+          qrHtml += ';';
+          qrHtml += '"/>';
+        }
+
+        qrHtml += '</tr>';
+      }
+
+      qrHtml += '</tbody>';
+      qrHtml += '</table>';
+
+      return qrHtml;
+    };
+
+    _this.createSvgTag = function(cellSize, margin, alt, title) {
+
+      var opts = {};
+      if (typeof arguments[0] == 'object') {
+        // Called by options.
+        opts = arguments[0];
+        // overwrite cellSize and margin.
+        cellSize = opts.cellSize;
+        margin = opts.margin;
+        alt = opts.alt;
+        title = opts.title;
+      }
+
+      cellSize = cellSize || 2;
+      margin = (typeof margin == 'undefined')? cellSize * 4 : margin;
+
+      // Compose alt property surrogate
+      alt = (typeof alt === 'string') ? {text: alt} : alt || {};
+      alt.text = alt.text || null;
+      alt.id = (alt.text) ? alt.id || 'qrcode-description' : null;
+
+      // Compose title property surrogate
+      title = (typeof title === 'string') ? {text: title} : title || {};
+      title.text = title.text || null;
+      title.id = (title.text) ? title.id || 'qrcode-title' : null;
+
+      var size = _this.getModuleCount() * cellSize + margin * 2;
+      var c, mc, r, mr, qrSvg='', rect;
+
+      rect = 'l' + cellSize + ',0 0,' + cellSize +
+        ' -' + cellSize + ',0 0,-' + cellSize + 'z ';
+
+      qrSvg += '<svg version="1.1" xmlns="http://www.w3.org/2000/svg"';
+      qrSvg += !opts.scalable ? ' width="' + size + 'px" height="' + size + 'px"' : '';
+      qrSvg += ' viewBox="0 0 ' + size + ' ' + size + '" ';
+      qrSvg += ' preserveAspectRatio="xMinYMin meet"';
+      qrSvg += (title.text || alt.text) ? ' role="img" aria-labelledby="' +
+          escapeXml([title.id, alt.id].join(' ').trim() ) + '"' : '';
+      qrSvg += '>';
+      qrSvg += (title.text) ? '<title id="' + escapeXml(title.id) + '">' +
+          escapeXml(title.text) + '</title>' : '';
+      qrSvg += (alt.text) ? '<description id="' + escapeXml(alt.id) + '">' +
+          escapeXml(alt.text) + '</description>' : '';
+      qrSvg += '<rect width="100%" height="100%" fill="white" cx="0" cy="0"/>';
+      qrSvg += '<path d="';
+
+      for (r = 0; r < _this.getModuleCount(); r += 1) {
+        mr = r * cellSize + margin;
+        for (c = 0; c < _this.getModuleCount(); c += 1) {
+          if (_this.isDark(r, c) ) {
+            mc = c*cellSize+margin;
+            qrSvg += 'M' + mc + ',' + mr + rect;
+          }
+        }
+      }
+
+      qrSvg += '" stroke="transparent" fill="black"/>';
+      qrSvg += '</svg>';
+
+      return qrSvg;
+    };
+
+    _this.createDataURL = function(cellSize, margin) {
+
+      cellSize = cellSize || 2;
+      margin = (typeof margin == 'undefined')? cellSize * 4 : margin;
+
+      var size = _this.getModuleCount() * cellSize + margin * 2;
+      var min = margin;
+      var max = size - margin;
+
+      return createDataURL(size, size, function(x, y) {
+        if (min <= x && x < max && min <= y && y < max) {
+          var c = Math.floor( (x - min) / cellSize);
+          var r = Math.floor( (y - min) / cellSize);
+          return _this.isDark(r, c)? 0 : 1;
+        } else {
+          return 1;
+        }
+      } );
+    };
+
+    _this.createImgTag = function(cellSize, margin, alt) {
+
+      cellSize = cellSize || 2;
+      margin = (typeof margin == 'undefined')? cellSize * 4 : margin;
+
+      var size = _this.getModuleCount() * cellSize + margin * 2;
+
+      var img = '';
+      img += '<img';
+      img += '\u0020src="';
+      img += _this.createDataURL(cellSize, margin);
+      img += '"';
+      img += '\u0020width="';
+      img += size;
+      img += '"';
+      img += '\u0020height="';
+      img += size;
+      img += '"';
+      if (alt) {
+        img += '\u0020alt="';
+        img += escapeXml(alt);
+        img += '"';
+      }
+      img += '/>';
+
+      return img;
+    };
+
+    var escapeXml = function(s) {
+      var escaped = '';
+      for (var i = 0; i < s.length; i += 1) {
+        var c = s.charAt(i);
+        switch(c) {
+        case '<': escaped += '&lt;'; break;
+        case '>': escaped += '&gt;'; break;
+        case '&': escaped += '&amp;'; break;
+        case '"': escaped += '&quot;'; break;
+        default : escaped += c; break;
+        }
+      }
+      return escaped;
+    };
+
+    var _createHalfASCII = function(margin) {
+      var cellSize = 1;
+      margin = (typeof margin == 'undefined')? cellSize * 2 : margin;
+
+      var size = _this.getModuleCount() * cellSize + margin * 2;
+      var min = margin;
+      var max = size - margin;
+
+      var y, x, r1, r2, p;
+
+      var blocks = {
+        '██': '█',
+        '█ ': '▀',
+        ' █': '▄',
+        '  ': ' '
+      };
+
+      var blocksLastLineNoMargin = {
+        '██': '▀',
+        '█ ': '▀',
+        ' █': ' ',
+        '  ': ' '
+      };
+
+      var ascii = '';
+      for (y = 0; y < size; y += 2) {
+        r1 = Math.floor((y - min) / cellSize);
+        r2 = Math.floor((y + 1 - min) / cellSize);
+        for (x = 0; x < size; x += 1) {
+          p = '█';
+
+          if (min <= x && x < max && min <= y && y < max && _this.isDark(r1, Math.floor((x - min) / cellSize))) {
+            p = ' ';
+          }
+
+          if (min <= x && x < max && min <= y+1 && y+1 < max && _this.isDark(r2, Math.floor((x - min) / cellSize))) {
+            p += ' ';
+          }
+          else {
+            p += '█';
+          }
+
+          // Output 2 characters per pixel, to create full square. 1 character per pixels gives only half width of square.
+          ascii += (margin < 1 && y+1 >= max) ? blocksLastLineNoMargin[p] : blocks[p];
+        }
+
+        ascii += '\n';
+      }
+
+      if (size % 2 && margin > 0) {
+        return ascii.substring(0, ascii.length - size - 1) + Array(size+1).join('▀');
+      }
+
+      return ascii.substring(0, ascii.length-1);
+    };
+
+    _this.createASCII = function(cellSize, margin) {
+      cellSize = cellSize || 1;
+
+      if (cellSize < 2) {
+        return _createHalfASCII(margin);
+      }
+
+      cellSize -= 1;
+      margin = (typeof margin == 'undefined')? cellSize * 2 : margin;
+
+      var size = _this.getModuleCount() * cellSize + margin * 2;
+      var min = margin;
+      var max = size - margin;
+
+      var y, x, r, p;
+
+      var white = Array(cellSize+1).join('██');
+      var black = Array(cellSize+1).join('  ');
+
+      var ascii = '';
+      var line = '';
+      for (y = 0; y < size; y += 1) {
+        r = Math.floor( (y - min) / cellSize);
+        line = '';
+        for (x = 0; x < size; x += 1) {
+          p = 1;
+
+          if (min <= x && x < max && min <= y && y < max && _this.isDark(r, Math.floor((x - min) / cellSize))) {
+            p = 0;
+          }
+
+          // Output 2 characters per pixel, to create full square. 1 character per pixels gives only half width of square.
+          line += p ? white : black;
+        }
+
+        for (r = 0; r < cellSize; r += 1) {
+          ascii += line + '\n';
+        }
+      }
+
+      return ascii.substring(0, ascii.length-1);
+    };
+
+    _this.renderTo2dContext = function(context, cellSize) {
+      cellSize = cellSize || 2;
+      var length = _this.getModuleCount();
+      for (var row = 0; row < length; row++) {
+        for (var col = 0; col < length; col++) {
+          context.fillStyle = _this.isDark(row, col) ? 'black' : 'white';
+          context.fillRect(col * cellSize, row * cellSize, cellSize, cellSize);
+        }
+      }
+    }
+
+    return _this;
+  };
+
+  //---------------------------------------------------------------------
+  // qrcode.stringToBytes
+  //---------------------------------------------------------------------
+
+  qrcode.stringToBytesFuncs = {
+    'default' : function(s) {
+      var bytes = [];
+      for (var i = 0; i < s.length; i += 1) {
+        var c = s.charCodeAt(i);
+        bytes.push(c & 0xff);
+      }
+      return bytes;
+    }
+  };
+
+  qrcode.stringToBytes = qrcode.stringToBytesFuncs['default'];
+
+  //---------------------------------------------------------------------
+  // qrcode.createStringToBytes
+  //---------------------------------------------------------------------
+
+  /**
+   * @param unicodeData base64 string of byte array.
+   * [16bit Unicode],[16bit Bytes], ...
+   * @param numChars
+   */
+  qrcode.createStringToBytes = function(unicodeData, numChars) {
+
+    // create conversion map.
+
+    var unicodeMap = function() {
+
+      var bin = base64DecodeInputStream(unicodeData);
+      var read = function() {
+        var b = bin.read();
+        if (b == -1) throw 'eof';
+        return b;
+      };
+
+      var count = 0;
+      var unicodeMap = {};
+      while (true) {
+        var b0 = bin.read();
+        if (b0 == -1) break;
+        var b1 = read();
+        var b2 = read();
+        var b3 = read();
+        var k = String.fromCharCode( (b0 << 8) | b1);
+        var v = (b2 << 8) | b3;
+        unicodeMap[k] = v;
+        count += 1;
+      }
+      if (count != numChars) {
+        throw count + ' != ' + numChars;
+      }
+
+      return unicodeMap;
+    }();
+
+    var unknownChar = '?'.charCodeAt(0);
+
+    return function(s) {
+      var bytes = [];
+      for (var i = 0; i < s.length; i += 1) {
+        var c = s.charCodeAt(i);
+        if (c < 128) {
+          bytes.push(c);
+        } else {
+          var b = unicodeMap[s.charAt(i)];
+          if (typeof b == 'number') {
+            if ( (b & 0xff) == b) {
+              // 1byte
+              bytes.push(b);
+            } else {
+              // 2bytes
+              bytes.push(b >>> 8);
+              bytes.push(b & 0xff);
+            }
+          } else {
+            bytes.push(unknownChar);
+          }
+        }
+      }
+      return bytes;
+    };
+  };
+
+  //---------------------------------------------------------------------
+  // QRMode
+  //---------------------------------------------------------------------
+
+  var QRMode = {
+    MODE_NUMBER :    1 << 0,
+    MODE_ALPHA_NUM : 1 << 1,
+    MODE_8BIT_BYTE : 1 << 2,
+    MODE_KANJI :     1 << 3
+  };
+
+  //---------------------------------------------------------------------
+  // QRErrorCorrectionLevel
+  //---------------------------------------------------------------------
+
+  var QRErrorCorrectionLevel = {
+    L : 1,
+    M : 0,
+    Q : 3,
+    H : 2
+  };
+
+  //---------------------------------------------------------------------
+  // QRMaskPattern
+  //---------------------------------------------------------------------
+
+  var QRMaskPattern = {
+    PATTERN000 : 0,
+    PATTERN001 : 1,
+    PATTERN010 : 2,
+    PATTERN011 : 3,
+    PATTERN100 : 4,
+    PATTERN101 : 5,
+    PATTERN110 : 6,
+    PATTERN111 : 7
+  };
+
+  //---------------------------------------------------------------------
+  // QRUtil
+  //---------------------------------------------------------------------
+
+  var QRUtil = function() {
+
+    var PATTERN_POSITION_TABLE = [
+      [],
+      [6, 18],
+      [6, 22],
+      [6, 26],
+      [6, 30],
+      [6, 34],
+      [6, 22, 38],
+      [6, 24, 42],
+      [6, 26, 46],
+      [6, 28, 50],
+      [6, 30, 54],
+      [6, 32, 58],
+      [6, 34, 62],
+      [6, 26, 46, 66],
+      [6, 26, 48, 70],
+      [6, 26, 50, 74],
+      [6, 30, 54, 78],
+      [6, 30, 56, 82],
+      [6, 30, 58, 86],
+      [6, 34, 62, 90],
+      [6, 28, 50, 72, 94],
+      [6, 26, 50, 74, 98],
+      [6, 30, 54, 78, 102],
+      [6, 28, 54, 80, 106],
+      [6, 32, 58, 84, 110],
+      [6, 30, 58, 86, 114],
+      [6, 34, 62, 90, 118],
+      [6, 26, 50, 74, 98, 122],
+      [6, 30, 54, 78, 102, 126],
+      [6, 26, 52, 78, 104, 130],
+      [6, 30, 56, 82, 108, 134],
+      [6, 34, 60, 86, 112, 138],
+      [6, 30, 58, 86, 114, 142],
+      [6, 34, 62, 90, 118, 146],
+      [6, 30, 54, 78, 102, 126, 150],
+      [6, 24, 50, 76, 102, 128, 154],
+      [6, 28, 54, 80, 106, 132, 158],
+      [6, 32, 58, 84, 110, 136, 162],
+      [6, 26, 54, 82, 110, 138, 166],
+      [6, 30, 58, 86, 114, 142, 170]
+    ];
+    var G15 = (1 << 10) | (1 << 8) | (1 << 5) | (1 << 4) | (1 << 2) | (1 << 1) | (1 << 0);
+    var G18 = (1 << 12) | (1 << 11) | (1 << 10) | (1 << 9) | (1 << 8) | (1 << 5) | (1 << 2) | (1 << 0);
+    var G15_MASK = (1 << 14) | (1 << 12) | (1 << 10) | (1 << 4) | (1 << 1);
+
+    var _this = {};
+
+    var getBCHDigit = function(data) {
+      var digit = 0;
+      while (data != 0) {
+        digit += 1;
+        data >>>= 1;
+      }
+      return digit;
+    };
+
+    _this.getBCHTypeInfo = function(data) {
+      var d = data << 10;
+      while (getBCHDigit(d) - getBCHDigit(G15) >= 0) {
+        d ^= (G15 << (getBCHDigit(d) - getBCHDigit(G15) ) );
+      }
+      return ( (data << 10) | d) ^ G15_MASK;
+    };
+
+    _this.getBCHTypeNumber = function(data) {
+      var d = data << 12;
+      while (getBCHDigit(d) - getBCHDigit(G18) >= 0) {
+        d ^= (G18 << (getBCHDigit(d) - getBCHDigit(G18) ) );
+      }
+      return (data << 12) | d;
+    };
+
+    _this.getPatternPosition = function(typeNumber) {
+      return PATTERN_POSITION_TABLE[typeNumber - 1];
+    };
+
+    _this.getMaskFunction = function(maskPattern) {
+
+      switch (maskPattern) {
+
+      case QRMaskPattern.PATTERN000 :
+        return function(i, j) { return (i + j) % 2 == 0; };
+      case QRMaskPattern.PATTERN001 :
+        return function(i, j) { return i % 2 == 0; };
+      case QRMaskPattern.PATTERN010 :
+        return function(i, j) { return j % 3 == 0; };
+      case QRMaskPattern.PATTERN011 :
+        return function(i, j) { return (i + j) % 3 == 0; };
+      case QRMaskPattern.PATTERN100 :
+        return function(i, j) { return (Math.floor(i / 2) + Math.floor(j / 3) ) % 2 == 0; };
+      case QRMaskPattern.PATTERN101 :
+        return function(i, j) { return (i * j) % 2 + (i * j) % 3 == 0; };
+      case QRMaskPattern.PATTERN110 :
+        return function(i, j) { return ( (i * j) % 2 + (i * j) % 3) % 2 == 0; };
+      case QRMaskPattern.PATTERN111 :
+        return function(i, j) { return ( (i * j) % 3 + (i + j) % 2) % 2 == 0; };
+
+      default :
+        throw 'bad maskPattern:' + maskPattern;
+      }
+    };
+
+    _this.getErrorCorrectPolynomial = function(errorCorrectLength) {
+      var a = qrPolynomial([1], 0);
+      for (var i = 0; i < errorCorrectLength; i += 1) {
+        a = a.multiply(qrPolynomial([1, QRMath.gexp(i)], 0) );
+      }
+      return a;
+    };
+
+    _this.getLengthInBits = function(mode, type) {
+
+      if (1 <= type && type < 10) {
+
+        // 1 - 9
+
+        switch(mode) {
+        case QRMode.MODE_NUMBER    : return 10;
+        case QRMode.MODE_ALPHA_NUM : return 9;
+        case QRMode.MODE_8BIT_BYTE : return 8;
+        case QRMode.MODE_KANJI     : return 8;
+        default :
+          throw 'mode:' + mode;
+        }
+
+      } else if (type < 27) {
+
+        // 10 - 26
+
+        switch(mode) {
+        case QRMode.MODE_NUMBER    : return 12;
+        case QRMode.MODE_ALPHA_NUM : return 11;
+        case QRMode.MODE_8BIT_BYTE : return 16;
+        case QRMode.MODE_KANJI     : return 10;
+        default :
+          throw 'mode:' + mode;
+        }
+
+      } else if (type < 41) {
+
+        // 27 - 40
+
+        switch(mode) {
+        case QRMode.MODE_NUMBER    : return 14;
+        case QRMode.MODE_ALPHA_NUM : return 13;
+        case QRMode.MODE_8BIT_BYTE : return 16;
+        case QRMode.MODE_KANJI     : return 12;
+        default :
+          throw 'mode:' + mode;
+        }
+
+      } else {
+        throw 'type:' + type;
+      }
+    };
+
+    _this.getLostPoint = function(qrcode) {
+
+      var moduleCount = qrcode.getModuleCount();
+
+      var lostPoint = 0;
+
+      // LEVEL1
+
+      for (var row = 0; row < moduleCount; row += 1) {
+        for (var col = 0; col < moduleCount; col += 1) {
+
+          var sameCount = 0;
+          var dark = qrcode.isDark(row, col);
+
+          for (var r = -1; r <= 1; r += 1) {
+
+            if (row + r < 0 || moduleCount <= row + r) {
+              continue;
+            }
+
+            for (var c = -1; c <= 1; c += 1) {
+
+              if (col + c < 0 || moduleCount <= col + c) {
+                continue;
+              }
+
+              if (r == 0 && c == 0) {
+                continue;
+              }
+
+              if (dark == qrcode.isDark(row + r, col + c) ) {
+                sameCount += 1;
+              }
+            }
+          }
+
+          if (sameCount > 5) {
+            lostPoint += (3 + sameCount - 5);
+          }
+        }
+      };
+
+      // LEVEL2
+
+      for (var row = 0; row < moduleCount - 1; row += 1) {
+        for (var col = 0; col < moduleCount - 1; col += 1) {
+          var count = 0;
+          if (qrcode.isDark(row, col) ) count += 1;
+          if (qrcode.isDark(row + 1, col) ) count += 1;
+          if (qrcode.isDark(row, col + 1) ) count += 1;
+          if (qrcode.isDark(row + 1, col + 1) ) count += 1;
+          if (count == 0 || count == 4) {
+            lostPoint += 3;
+          }
+        }
+      }
+
+      // LEVEL3
+
+      for (var row = 0; row < moduleCount; row += 1) {
+        for (var col = 0; col < moduleCount - 6; col += 1) {
+          if (qrcode.isDark(row, col)
+              && !qrcode.isDark(row, col + 1)
+              &&  qrcode.isDark(row, col + 2)
+              &&  qrcode.isDark(row, col + 3)
+              &&  qrcode.isDark(row, col + 4)
+              && !qrcode.isDark(row, col + 5)
+              &&  qrcode.isDark(row, col + 6) ) {
+            lostPoint += 40;
+          }
+        }
+      }
+
+      for (var col = 0; col < moduleCount; col += 1) {
+        for (var row = 0; row < moduleCount - 6; row += 1) {
+          if (qrcode.isDark(row, col)
+              && !qrcode.isDark(row + 1, col)
+              &&  qrcode.isDark(row + 2, col)
+              &&  qrcode.isDark(row + 3, col)
+              &&  qrcode.isDark(row + 4, col)
+              && !qrcode.isDark(row + 5, col)
+              &&  qrcode.isDark(row + 6, col) ) {
+            lostPoint += 40;
+          }
+        }
+      }
+
+      // LEVEL4
+
+      var darkCount = 0;
+
+      for (var col = 0; col < moduleCount; col += 1) {
+        for (var row = 0; row < moduleCount; row += 1) {
+          if (qrcode.isDark(row, col) ) {
+            darkCount += 1;
+          }
+        }
+      }
+
+      var ratio = Math.abs(100 * darkCount / moduleCount / moduleCount - 50) / 5;
+      lostPoint += ratio * 10;
+
+      return lostPoint;
+    };
+
+    return _this;
+  }();
+
+  //---------------------------------------------------------------------
+  // QRMath
+  //---------------------------------------------------------------------
+
+  var QRMath = function() {
+
+    var EXP_TABLE = new Array(256);
+    var LOG_TABLE = new Array(256);
+
+    // initialize tables
+    for (var i = 0; i < 8; i += 1) {
+      EXP_TABLE[i] = 1 << i;
+    }
+    for (var i = 8; i < 256; i += 1) {
+      EXP_TABLE[i] = EXP_TABLE[i - 4]
+        ^ EXP_TABLE[i - 5]
+        ^ EXP_TABLE[i - 6]
+        ^ EXP_TABLE[i - 8];
+    }
+    for (var i = 0; i < 255; i += 1) {
+      LOG_TABLE[EXP_TABLE[i] ] = i;
+    }
+
+    var _this = {};
+
+    _this.glog = function(n) {
+
+      if (n < 1) {
+        throw 'glog(' + n + ')';
+      }
+
+      return LOG_TABLE[n];
+    };
+
+    _this.gexp = function(n) {
+
+      while (n < 0) {
+        n += 255;
+      }
+
+      while (n >= 256) {
+        n -= 255;
+      }
+
+      return EXP_TABLE[n];
+    };
+
+    return _this;
+  }();
+
+  //---------------------------------------------------------------------
+  // qrPolynomial
+  //---------------------------------------------------------------------
+
+  function qrPolynomial(num, shift) {
+
+    if (typeof num.length == 'undefined') {
+      throw num.length + '/' + shift;
+    }
+
+    var _num = function() {
+      var offset = 0;
+      while (offset < num.length && num[offset] == 0) {
+        offset += 1;
+      }
+      var _num = new Array(num.length - offset + shift);
+      for (var i = 0; i < num.length - offset; i += 1) {
+        _num[i] = num[i + offset];
+      }
+      return _num;
+    }();
+
+    var _this = {};
+
+    _this.getAt = function(index) {
+      return _num[index];
+    };
+
+    _this.getLength = function() {
+      return _num.length;
+    };
+
+    _this.multiply = function(e) {
+
+      var num = new Array(_this.getLength() + e.getLength() - 1);
+
+      for (var i = 0; i < _this.getLength(); i += 1) {
+        for (var j = 0; j < e.getLength(); j += 1) {
+          num[i + j] ^= QRMath.gexp(QRMath.glog(_this.getAt(i) ) + QRMath.glog(e.getAt(j) ) );
+        }
+      }
+
+      return qrPolynomial(num, 0);
+    };
+
+    _this.mod = function(e) {
+
+      if (_this.getLength() - e.getLength() < 0) {
+        return _this;
+      }
+
+      var ratio = QRMath.glog(_this.getAt(0) ) - QRMath.glog(e.getAt(0) );
+
+      var num = new Array(_this.getLength() );
+      for (var i = 0; i < _this.getLength(); i += 1) {
+        num[i] = _this.getAt(i);
+      }
+
+      for (var i = 0; i < e.getLength(); i += 1) {
+        num[i] ^= QRMath.gexp(QRMath.glog(e.getAt(i) ) + ratio);
+      }
+
+      // recursive call
+      return qrPolynomial(num, 0).mod(e);
+    };
+
+    return _this;
+  };
+
+  //---------------------------------------------------------------------
+  // QRRSBlock
+  //---------------------------------------------------------------------
+
+  var QRRSBlock = function() {
+
+    var RS_BLOCK_TABLE = [
+
+      // L
+      // M
+      // Q
+      // H
+
+      // 1
+      [1, 26, 19],
+      [1, 26, 16],
+      [1, 26, 13],
+      [1, 26, 9],
+
+      // 2
+      [1, 44, 34],
+      [1, 44, 28],
+      [1, 44, 22],
+      [1, 44, 16],
+
+      // 3
+      [1, 70, 55],
+      [1, 70, 44],
+      [2, 35, 17],
+      [2, 35, 13],
+
+      // 4
+      [1, 100, 80],
+      [2, 50, 32],
+      [2, 50, 24],
+      [4, 25, 9],
+
+      // 5
+      [1, 134, 108],
+      [2, 67, 43],
+      [2, 33, 15, 2, 34, 16],
+      [2, 33, 11, 2, 34, 12],
+
+      // 6
+      [2, 86, 68],
+      [4, 43, 27],
+      [4, 43, 19],
+      [4, 43, 15],
+
+      // 7
+      [2, 98, 78],
+      [4, 49, 31],
+      [2, 32, 14, 4, 33, 15],
+      [4, 39, 13, 1, 40, 14],
+
+      // 8
+      [2, 121, 97],
+      [2, 60, 38, 2, 61, 39],
+      [4, 40, 18, 2, 41, 19],
+      [4, 40, 14, 2, 41, 15],
+
+      // 9
+      [2, 146, 116],
+      [3, 58, 36, 2, 59, 37],
+      [4, 36, 16, 4, 37, 17],
+      [4, 36, 12, 4, 37, 13],
+
+      // 10
+      [2, 86, 68, 2, 87, 69],
+      [4, 69, 43, 1, 70, 44],
+      [6, 43, 19, 2, 44, 20],
+      [6, 43, 15, 2, 44, 16],
+
+      // 11
+      [4, 101, 81],
+      [1, 80, 50, 4, 81, 51],
+      [4, 50, 22, 4, 51, 23],
+      [3, 36, 12, 8, 37, 13],
+
+      // 12
+      [2, 116, 92, 2, 117, 93],
+      [6, 58, 36, 2, 59, 37],
+      [4, 46, 20, 6, 47, 21],
+      [7, 42, 14, 4, 43, 15],
+
+      // 13
+      [4, 133, 107],
+      [8, 59, 37, 1, 60, 38],
+      [8, 44, 20, 4, 45, 21],
+      [12, 33, 11, 4, 34, 12],
+
+      // 14
+      [3, 145, 115, 1, 146, 116],
+      [4, 64, 40, 5, 65, 41],
+      [11, 36, 16, 5, 37, 17],
+      [11, 36, 12, 5, 37, 13],
+
+      // 15
+      [5, 109, 87, 1, 110, 88],
+      [5, 65, 41, 5, 66, 42],
+      [5, 54, 24, 7, 55, 25],
+      [11, 36, 12, 7, 37, 13],
+
+      // 16
+      [5, 122, 98, 1, 123, 99],
+      [7, 73, 45, 3, 74, 46],
+      [15, 43, 19, 2, 44, 20],
+      [3, 45, 15, 13, 46, 16],
+
+      // 17
+      [1, 135, 107, 5, 136, 108],
+      [10, 74, 46, 1, 75, 47],
+      [1, 50, 22, 15, 51, 23],
+      [2, 42, 14, 17, 43, 15],
+
+      // 18
+      [5, 150, 120, 1, 151, 121],
+      [9, 69, 43, 4, 70, 44],
+      [17, 50, 22, 1, 51, 23],
+      [2, 42, 14, 19, 43, 15],
+
+      // 19
+      [3, 141, 113, 4, 142, 114],
+      [3, 70, 44, 11, 71, 45],
+      [17, 47, 21, 4, 48, 22],
+      [9, 39, 13, 16, 40, 14],
+
+      // 20
+      [3, 135, 107, 5, 136, 108],
+      [3, 67, 41, 13, 68, 42],
+      [15, 54, 24, 5, 55, 25],
+      [15, 43, 15, 10, 44, 16],
+
+      // 21
+      [4, 144, 116, 4, 145, 117],
+      [17, 68, 42],
+      [17, 50, 22, 6, 51, 23],
+      [19, 46, 16, 6, 47, 17],
+
+      // 22
+      [2, 139, 111, 7, 140, 112],
+      [17, 74, 46],
+      [7, 54, 24, 16, 55, 25],
+      [34, 37, 13],
+
+      // 23
+      [4, 151, 121, 5, 152, 122],
+      [4, 75, 47, 14, 76, 48],
+      [11, 54, 24, 14, 55, 25],
+      [16, 45, 15, 14, 46, 16],
+
+      // 24
+      [6, 147, 117, 4, 148, 118],
+      [6, 73, 45, 14, 74, 46],
+      [11, 54, 24, 16, 55, 25],
+      [30, 46, 16, 2, 47, 17],
+
+      // 25
+      [8, 132, 106, 4, 133, 107],
+      [8, 75, 47, 13, 76, 48],
+      [7, 54, 24, 22, 55, 25],
+      [22, 45, 15, 13, 46, 16],
+
+      // 26
+      [10, 142, 114, 2, 143, 115],
+      [19, 74, 46, 4, 75, 47],
+      [28, 50, 22, 6, 51, 23],
+      [33, 46, 16, 4, 47, 17],
+
+      // 27
+      [8, 152, 122, 4, 153, 123],
+      [22, 73, 45, 3, 74, 46],
+      [8, 53, 23, 26, 54, 24],
+      [12, 45, 15, 28, 46, 16],
+
+      // 28
+      [3, 147, 117, 10, 148, 118],
+      [3, 73, 45, 23, 74, 46],
+      [4, 54, 24, 31, 55, 25],
+      [11, 45, 15, 31, 46, 16],
+
+      // 29
+      [7, 146, 116, 7, 147, 117],
+      [21, 73, 45, 7, 74, 46],
+      [1, 53, 23, 37, 54, 24],
+      [19, 45, 15, 26, 46, 16],
+
+      // 30
+      [5, 145, 115, 10, 146, 116],
+      [19, 75, 47, 10, 76, 48],
+      [15, 54, 24, 25, 55, 25],
+      [23, 45, 15, 25, 46, 16],
+
+      // 31
+      [13, 145, 115, 3, 146, 116],
+      [2, 74, 46, 29, 75, 47],
+      [42, 54, 24, 1, 55, 25],
+      [23, 45, 15, 28, 46, 16],
+
+      // 32
+      [17, 145, 115],
+      [10, 74, 46, 23, 75, 47],
+      [10, 54, 24, 35, 55, 25],
+      [19, 45, 15, 35, 46, 16],
+
+      // 33
+      [17, 145, 115, 1, 146, 116],
+      [14, 74, 46, 21, 75, 47],
+      [29, 54, 24, 19, 55, 25],
+      [11, 45, 15, 46, 46, 16],
+
+      // 34
+      [13, 145, 115, 6, 146, 116],
+      [14, 74, 46, 23, 75, 47],
+      [44, 54, 24, 7, 55, 25],
+      [59, 46, 16, 1, 47, 17],
+
+      // 35
+      [12, 151, 121, 7, 152, 122],
+      [12, 75, 47, 26, 76, 48],
+      [39, 54, 24, 14, 55, 25],
+      [22, 45, 15, 41, 46, 16],
+
+      // 36
+      [6, 151, 121, 14, 152, 122],
+      [6, 75, 47, 34, 76, 48],
+      [46, 54, 24, 10, 55, 25],
+      [2, 45, 15, 64, 46, 16],
+
+      // 37
+      [17, 152, 122, 4, 153, 123],
+      [29, 74, 46, 14, 75, 47],
+      [49, 54, 24, 10, 55, 25],
+      [24, 45, 15, 46, 46, 16],
+
+      // 38
+      [4, 152, 122, 18, 153, 123],
+      [13, 74, 46, 32, 75, 47],
+      [48, 54, 24, 14, 55, 25],
+      [42, 45, 15, 32, 46, 16],
+
+      // 39
+      [20, 147, 117, 4, 148, 118],
+      [40, 75, 47, 7, 76, 48],
+      [43, 54, 24, 22, 55, 25],
+      [10, 45, 15, 67, 46, 16],
+
+      // 40
+      [19, 148, 118, 6, 149, 119],
+      [18, 75, 47, 31, 76, 48],
+      [34, 54, 24, 34, 55, 25],
+      [20, 45, 15, 61, 46, 16]
+    ];
+
+    var qrRSBlock = function(totalCount, dataCount) {
+      var _this = {};
+      _this.totalCount = totalCount;
+      _this.dataCount = dataCount;
+      return _this;
+    };
+
+    var _this = {};
+
+    var getRsBlockTable = function(typeNumber, errorCorrectionLevel) {
+
+      switch(errorCorrectionLevel) {
+      case QRErrorCorrectionLevel.L :
+        return RS_BLOCK_TABLE[(typeNumber - 1) * 4 + 0];
+      case QRErrorCorrectionLevel.M :
+        return RS_BLOCK_TABLE[(typeNumber - 1) * 4 + 1];
+      case QRErrorCorrectionLevel.Q :
+        return RS_BLOCK_TABLE[(typeNumber - 1) * 4 + 2];
+      case QRErrorCorrectionLevel.H :
+        return RS_BLOCK_TABLE[(typeNumber - 1) * 4 + 3];
+      default :
+        return undefined;
+      }
+    };
+
+    _this.getRSBlocks = function(typeNumber, errorCorrectionLevel) {
+
+      var rsBlock = getRsBlockTable(typeNumber, errorCorrectionLevel);
+
+      if (typeof rsBlock == 'undefined') {
+        throw 'bad rs block @ typeNumber:' + typeNumber +
+            '/errorCorrectionLevel:' + errorCorrectionLevel;
+      }
+
+      var length = rsBlock.length / 3;
+
+      var list = [];
+
+      for (var i = 0; i < length; i += 1) {
+
+        var count = rsBlock[i * 3 + 0];
+        var totalCount = rsBlock[i * 3 + 1];
+        var dataCount = rsBlock[i * 3 + 2];
+
+        for (var j = 0; j < count; j += 1) {
+          list.push(qrRSBlock(totalCount, dataCount) );
+        }
+      }
+
+      return list;
+    };
+
+    return _this;
+  }();
+
+  //---------------------------------------------------------------------
+  // qrBitBuffer
+  //---------------------------------------------------------------------
+
+  var qrBitBuffer = function() {
+
+    var _buffer = [];
+    var _length = 0;
+
+    var _this = {};
+
+    _this.getBuffer = function() {
+      return _buffer;
+    };
+
+    _this.getAt = function(index) {
+      var bufIndex = Math.floor(index / 8);
+      return ( (_buffer[bufIndex] >>> (7 - index % 8) ) & 1) == 1;
+    };
+
+    _this.put = function(num, length) {
+      for (var i = 0; i < length; i += 1) {
+        _this.putBit( ( (num >>> (length - i - 1) ) & 1) == 1);
+      }
+    };
+
+    _this.getLengthInBits = function() {
+      return _length;
+    };
+
+    _this.putBit = function(bit) {
+
+      var bufIndex = Math.floor(_length / 8);
+      if (_buffer.length <= bufIndex) {
+        _buffer.push(0);
+      }
+
+      if (bit) {
+        _buffer[bufIndex] |= (0x80 >>> (_length % 8) );
+      }
+
+      _length += 1;
+    };
+
+    return _this;
+  };
+
+  //---------------------------------------------------------------------
+  // qrNumber
+  //---------------------------------------------------------------------
+
+  var qrNumber = function(data) {
+
+    var _mode = QRMode.MODE_NUMBER;
+    var _data = data;
+
+    var _this = {};
+
+    _this.getMode = function() {
+      return _mode;
+    };
+
+    _this.getLength = function(buffer) {
+      return _data.length;
+    };
+
+    _this.write = function(buffer) {
+
+      var data = _data;
+
+      var i = 0;
+
+      while (i + 2 < data.length) {
+        buffer.put(strToNum(data.substring(i, i + 3) ), 10);
+        i += 3;
+      }
+
+      if (i < data.length) {
+        if (data.length - i == 1) {
+          buffer.put(strToNum(data.substring(i, i + 1) ), 4);
+        } else if (data.length - i == 2) {
+          buffer.put(strToNum(data.substring(i, i + 2) ), 7);
+        }
+      }
+    };
+
+    var strToNum = function(s) {
+      var num = 0;
+      for (var i = 0; i < s.length; i += 1) {
+        num = num * 10 + chatToNum(s.charAt(i) );
+      }
+      return num;
+    };
+
+    var chatToNum = function(c) {
+      if ('0' <= c && c <= '9') {
+        return c.charCodeAt(0) - '0'.charCodeAt(0);
+      }
+      throw 'illegal char :' + c;
+    };
+
+    return _this;
+  };
+
+  //---------------------------------------------------------------------
+  // qrAlphaNum
+  //---------------------------------------------------------------------
+
+  var qrAlphaNum = function(data) {
+
+    var _mode = QRMode.MODE_ALPHA_NUM;
+    var _data = data;
+
+    var _this = {};
+
+    _this.getMode = function() {
+      return _mode;
+    };
+
+    _this.getLength = function(buffer) {
+      return _data.length;
+    };
+
+    _this.write = function(buffer) {
+
+      var s = _data;
+
+      var i = 0;
+
+      while (i + 1 < s.length) {
+        buffer.put(
+          getCode(s.charAt(i) ) * 45 +
+          getCode(s.charAt(i + 1) ), 11);
+        i += 2;
+      }
+
+      if (i < s.length) {
+        buffer.put(getCode(s.charAt(i) ), 6);
+      }
+    };
+
+    var getCode = function(c) {
+
+      if ('0' <= c && c <= '9') {
+        return c.charCodeAt(0) - '0'.charCodeAt(0);
+      } else if ('A' <= c && c <= 'Z') {
+        return c.charCodeAt(0) - 'A'.charCodeAt(0) + 10;
+      } else {
+        switch (c) {
+        case ' ' : return 36;
+        case '$' : return 37;
+        case '%' : return 38;
+        case '*' : return 39;
+        case '+' : return 40;
+        case '-' : return 41;
+        case '.' : return 42;
+        case '/' : return 43;
+        case ':' : return 44;
+        default :
+          throw 'illegal char :' + c;
+        }
+      }
+    };
+
+    return _this;
+  };
+
+  //---------------------------------------------------------------------
+  // qr8BitByte
+  //---------------------------------------------------------------------
+
+  var qr8BitByte = function(data) {
+
+    var _mode = QRMode.MODE_8BIT_BYTE;
+    var _data = data;
+    var _bytes = qrcode.stringToBytes(data);
+
+    var _this = {};
+
+    _this.getMode = function() {
+      return _mode;
+    };
+
+    _this.getLength = function(buffer) {
+      return _bytes.length;
+    };
+
+    _this.write = function(buffer) {
+      for (var i = 0; i < _bytes.length; i += 1) {
+        buffer.put(_bytes[i], 8);
+      }
+    };
+
+    return _this;
+  };
+
+  //---------------------------------------------------------------------
+  // qrKanji
+  //---------------------------------------------------------------------
+
+  var qrKanji = function(data) {
+
+    var _mode = QRMode.MODE_KANJI;
+    var _data = data;
+
+    var stringToBytes = qrcode.stringToBytesFuncs['SJIS'];
+    if (!stringToBytes) {
+      throw 'sjis not supported.';
+    }
+    !function(c, code) {
+      // self test for sjis support.
+      var test = stringToBytes(c);
+      if (test.length != 2 || ( (test[0] << 8) | test[1]) != code) {
+        throw 'sjis not supported.';
+      }
+    }('\u53cb', 0x9746);
+
+    var _bytes = stringToBytes(data);
+
+    var _this = {};
+
+    _this.getMode = function() {
+      return _mode;
+    };
+
+    _this.getLength = function(buffer) {
+      return ~~(_bytes.length / 2);
+    };
+
+    _this.write = function(buffer) {
+
+      var data = _bytes;
+
+      var i = 0;
+
+      while (i + 1 < data.length) {
+
+        var c = ( (0xff & data[i]) << 8) | (0xff & data[i + 1]);
+
+        if (0x8140 <= c && c <= 0x9FFC) {
+          c -= 0x8140;
+        } else if (0xE040 <= c && c <= 0xEBBF) {
+          c -= 0xC140;
+        } else {
+          throw 'illegal char at ' + (i + 1) + '/' + c;
+        }
+
+        c = ( (c >>> 8) & 0xff) * 0xC0 + (c & 0xff);
+
+        buffer.put(c, 13);
+
+        i += 2;
+      }
+
+      if (i < data.length) {
+        throw 'illegal char at ' + (i + 1);
+      }
+    };
+
+    return _this;
+  };
+
+  //=====================================================================
+  // GIF Support etc.
+  //
+
+  //---------------------------------------------------------------------
+  // byteArrayOutputStream
+  //---------------------------------------------------------------------
+
+  var byteArrayOutputStream = function() {
+
+    var _bytes = [];
+
+    var _this = {};
+
+    _this.writeByte = function(b) {
+      _bytes.push(b & 0xff);
+    };
+
+    _this.writeShort = function(i) {
+      _this.writeByte(i);
+      _this.writeByte(i >>> 8);
+    };
+
+    _this.writeBytes = function(b, off, len) {
+      off = off || 0;
+      len = len || b.length;
+      for (var i = 0; i < len; i += 1) {
+        _this.writeByte(b[i + off]);
+      }
+    };
+
+    _this.writeString = function(s) {
+      for (var i = 0; i < s.length; i += 1) {
+        _this.writeByte(s.charCodeAt(i) );
+      }
+    };
+
+    _this.toByteArray = function() {
+      return _bytes;
+    };
+
+    _this.toString = function() {
+      var s = '';
+      s += '[';
+      for (var i = 0; i < _bytes.length; i += 1) {
+        if (i > 0) {
+          s += ',';
+        }
+        s += _bytes[i];
+      }
+      s += ']';
+      return s;
+    };
+
+    return _this;
+  };
+
+  //---------------------------------------------------------------------
+  // base64EncodeOutputStream
+  //---------------------------------------------------------------------
+
+  var base64EncodeOutputStream = function() {
+
+    var _buffer = 0;
+    var _buflen = 0;
+    var _length = 0;
+    var _base64 = '';
+
+    var _this = {};
+
+    var writeEncoded = function(b) {
+      _base64 += String.fromCharCode(encode(b & 0x3f) );
+    };
+
+    var encode = function(n) {
+      if (n < 0) {
+        // error.
+      } else if (n < 26) {
+        return 0x41 + n;
+      } else if (n < 52) {
+        return 0x61 + (n - 26);
+      } else if (n < 62) {
+        return 0x30 + (n - 52);
+      } else if (n == 62) {
+        return 0x2b;
+      } else if (n == 63) {
+        return 0x2f;
+      }
+      throw 'n:' + n;
+    };
+
+    _this.writeByte = function(n) {
+
+      _buffer = (_buffer << 8) | (n & 0xff);
+      _buflen += 8;
+      _length += 1;
+
+      while (_buflen >= 6) {
+        writeEncoded(_buffer >>> (_buflen - 6) );
+        _buflen -= 6;
+      }
+    };
+
+    _this.flush = function() {
+
+      if (_buflen > 0) {
+        writeEncoded(_buffer << (6 - _buflen) );
+        _buffer = 0;
+        _buflen = 0;
+      }
+
+      if (_length % 3 != 0) {
+        // padding
+        var padlen = 3 - _length % 3;
+        for (var i = 0; i < padlen; i += 1) {
+          _base64 += '=';
+        }
+      }
+    };
+
+    _this.toString = function() {
+      return _base64;
+    };
+
+    return _this;
+  };
+
+  //---------------------------------------------------------------------
+  // base64DecodeInputStream
+  //---------------------------------------------------------------------
+
+  var base64DecodeInputStream = function(str) {
+
+    var _str = str;
+    var _pos = 0;
+    var _buffer = 0;
+    var _buflen = 0;
+
+    var _this = {};
+
+    _this.read = function() {
+
+      while (_buflen < 8) {
+
+        if (_pos >= _str.length) {
+          if (_buflen == 0) {
+            return -1;
+          }
+          throw 'unexpected end of file./' + _buflen;
+        }
+
+        var c = _str.charAt(_pos);
+        _pos += 1;
+
+        if (c == '=') {
+          _buflen = 0;
+          return -1;
+        } else if (c.match(/^\s$/) ) {
+          // ignore if whitespace.
+          continue;
+        }
+
+        _buffer = (_buffer << 6) | decode(c.charCodeAt(0) );
+        _buflen += 6;
+      }
+
+      var n = (_buffer >>> (_buflen - 8) ) & 0xff;
+      _buflen -= 8;
+      return n;
+    };
+
+    var decode = function(c) {
+      if (0x41 <= c && c <= 0x5a) {
+        return c - 0x41;
+      } else if (0x61 <= c && c <= 0x7a) {
+        return c - 0x61 + 26;
+      } else if (0x30 <= c && c <= 0x39) {
+        return c - 0x30 + 52;
+      } else if (c == 0x2b) {
+        return 62;
+      } else if (c == 0x2f) {
+        return 63;
+      } else {
+        throw 'c:' + c;
+      }
+    };
+
+    return _this;
+  };
+
+  //---------------------------------------------------------------------
+  // gifImage (B/W)
+  //---------------------------------------------------------------------
+
+  var gifImage = function(width, height) {
+
+    var _width = width;
+    var _height = height;
+    var _data = new Array(width * height);
+
+    var _this = {};
+
+    _this.setPixel = function(x, y, pixel) {
+      _data[y * _width + x] = pixel;
+    };
+
+    _this.write = function(out) {
+
+      //---------------------------------
+      // GIF Signature
+
+      out.writeString('GIF87a');
+
+      //---------------------------------
+      // Screen Descriptor
+
+      out.writeShort(_width);
+      out.writeShort(_height);
+
+      out.writeByte(0x80); // 2bit
+      out.writeByte(0);
+      out.writeByte(0);
+
+      //---------------------------------
+      // Global Color Map
+
+      // black
+      out.writeByte(0x00);
+      out.writeByte(0x00);
+      out.writeByte(0x00);
+
+      // white
+      out.writeByte(0xff);
+      out.writeByte(0xff);
+      out.writeByte(0xff);
+
+      //---------------------------------
+      // Image Descriptor
+
+      out.writeString(',');
+      out.writeShort(0);
+      out.writeShort(0);
+      out.writeShort(_width);
+      out.writeShort(_height);
+      out.writeByte(0);
+
+      //---------------------------------
+      // Local Color Map
+
+      //---------------------------------
+      // Raster Data
+
+      var lzwMinCodeSize = 2;
+      var raster = getLZWRaster(lzwMinCodeSize);
+
+      out.writeByte(lzwMinCodeSize);
+
+      var offset = 0;
+
+      while (raster.length - offset > 255) {
+        out.writeByte(255);
+        out.writeBytes(raster, offset, 255);
+        offset += 255;
+      }
+
+      out.writeByte(raster.length - offset);
+      out.writeBytes(raster, offset, raster.length - offset);
+      out.writeByte(0x00);
+
+      //---------------------------------
+      // GIF Terminator
+      out.writeString(';');
+    };
+
+    var bitOutputStream = function(out) {
+
+      var _out = out;
+      var _bitLength = 0;
+      var _bitBuffer = 0;
+
+      var _this = {};
+
+      _this.write = function(data, length) {
+
+        if ( (data >>> length) != 0) {
+          throw 'length over';
+        }
+
+        while (_bitLength + length >= 8) {
+          _out.writeByte(0xff & ( (data << _bitLength) | _bitBuffer) );
+          length -= (8 - _bitLength);
+          data >>>= (8 - _bitLength);
+          _bitBuffer = 0;
+          _bitLength = 0;
+        }
+
+        _bitBuffer = (data << _bitLength) | _bitBuffer;
+        _bitLength = _bitLength + length;
+      };
+
+      _this.flush = function() {
+        if (_bitLength > 0) {
+          _out.writeByte(_bitBuffer);
+        }
+      };
+
+      return _this;
+    };
+
+    var getLZWRaster = function(lzwMinCodeSize) {
+
+      var clearCode = 1 << lzwMinCodeSize;
+      var endCode = (1 << lzwMinCodeSize) + 1;
+      var bitLength = lzwMinCodeSize + 1;
+
+      // Setup LZWTable
+      var table = lzwTable();
+
+      for (var i = 0; i < clearCode; i += 1) {
+        table.add(String.fromCharCode(i) );
+      }
+      table.add(String.fromCharCode(clearCode) );
+      table.add(String.fromCharCode(endCode) );
+
+      var byteOut = byteArrayOutputStream();
+      var bitOut = bitOutputStream(byteOut);
+
+      // clear code
+      bitOut.write(clearCode, bitLength);
+
+      var dataIndex = 0;
+
+      var s = String.fromCharCode(_data[dataIndex]);
+      dataIndex += 1;
+
+      while (dataIndex < _data.length) {
+
+        var c = String.fromCharCode(_data[dataIndex]);
+        dataIndex += 1;
+
+        if (table.contains(s + c) ) {
+
+          s = s + c;
+
+        } else {
+
+          bitOut.write(table.indexOf(s), bitLength);
+
+          if (table.size() < 0xfff) {
+
+            if (table.size() == (1 << bitLength) ) {
+              bitLength += 1;
+            }
+
+            table.add(s + c);
+          }
+
+          s = c;
+        }
+      }
+
+      bitOut.write(table.indexOf(s), bitLength);
+
+      // end code
+      bitOut.write(endCode, bitLength);
+
+      bitOut.flush();
+
+      return byteOut.toByteArray();
+    };
+
+    var lzwTable = function() {
+
+      var _map = {};
+      var _size = 0;
+
+      var _this = {};
+
+      _this.add = function(key) {
+        if (_this.contains(key) ) {
+          throw 'dup key:' + key;
+        }
+        _map[key] = _size;
+        _size += 1;
+      };
+
+      _this.size = function() {
+        return _size;
+      };
+
+      _this.indexOf = function(key) {
+        return _map[key];
+      };
+
+      _this.contains = function(key) {
+        return typeof _map[key] != 'undefined';
+      };
+
+      return _this;
+    };
+
+    return _this;
+  };
+
+  var createDataURL = function(width, height, getPixel) {
+    var gif = gifImage(width, height);
+    for (var y = 0; y < height; y += 1) {
+      for (var x = 0; x < width; x += 1) {
+        gif.setPixel(x, y, getPixel(x, y) );
+      }
+    }
+
+    var b = byteArrayOutputStream();
+    gif.write(b);
+
+    var base64 = base64EncodeOutputStream();
+    var bytes = b.toByteArray();
+    for (var i = 0; i < bytes.length; i += 1) {
+      base64.writeByte(bytes[i]);
+    }
+    base64.flush();
+
+    return 'data:image/gif;base64,' + base64;
+  };
+
+  //---------------------------------------------------------------------
+  // returns qrcode function.
+
+  return qrcode;
+}();
+
+// multibyte support
+!function() {
+
+  qrcode.stringToBytesFuncs['UTF-8'] = function(s) {
+    // http://stackoverflow.com/questions/18729405/how-to-convert-utf8-string-to-byte-array
+    function toUTF8Array(str) {
+      var utf8 = [];
+      for (var i=0; i < str.length; i++) {
+        var charcode = str.charCodeAt(i);
+        if (charcode < 0x80) utf8.push(charcode);
+        else if (charcode < 0x800) {
+          utf8.push(0xc0 | (charcode >> 6),
+              0x80 | (charcode & 0x3f));
+        }
+        else if (charcode < 0xd800 || charcode >= 0xe000) {
+          utf8.push(0xe0 | (charcode >> 12),
+              0x80 | ((charcode>>6) & 0x3f),
+              0x80 | (charcode & 0x3f));
+        }
+        // surrogate pair
+        else {
+          i++;
+          // UTF-16 encodes 0x10000-0x10FFFF by
+          // subtracting 0x10000 and splitting the
+          // 20 bits of 0x0-0xFFFFF into two halves
+          charcode = 0x10000 + (((charcode & 0x3ff)<<10)
+            | (str.charCodeAt(i) & 0x3ff));
+          utf8.push(0xf0 | (charcode >>18),
+              0x80 | ((charcode>>12) & 0x3f),
+              0x80 | ((charcode>>6) & 0x3f),
+              0x80 | (charcode & 0x3f));
+        }
+      }
+      return utf8;
+    }
+    return toUTF8Array(s);
+  };
+
+}();
+
+(function (factory) {
+  if (typeof define === 'function' && define.amd) {
+      define([], factory);
+  } else if (typeof exports === 'object') {
+      module.exports = factory();
+  }
+}(function () {
+    return qrcode;
+}));
+
+</script>
+<script>
+const CROPS={Tomatoes:'🍅',Maize:'🌽'};
+const UNITS={Tomatoes:'crate',Maize:'bag'};
+const STATUS={escrow:'Paid, waiting for a courier',assigned:'Courier heading to the farm',picked:'Picked up at the farm',transit:'On the road',arrived:'Arrived, enter your code',released:'Complete'};
+const NETS=['MTN MoMo','Telecel Cash','AirtelTigo Money'];
+const STEPS=['Buyer pays into escrow','Courier accepts the job','Produce picked up at the farm','On the road to the buyer','Delivered, buyer enters the code','Farmer paid out'];
+const VEH={'Motorbike':'🏍️','Tricycle (aboboyaa)':'🛺','Mini-truck':'🚚','Truck':'🚛'};
+const TOWNS={Techiman:[7.59,-1.94],Tuobodom:[7.68,-1.96],Nkoranza:[7.57,-1.70],Kintampo:[8.06,-1.73],Accra:[5.60,-0.19],Kumasi:[6.69,-1.62],Sunyani:[7.33,-2.31]};
+const RANGE={'Motorbike':100,'Tricycle (aboboyaa)':70,'Mini-truck':900,'Truck':1500};
+const BUYERS=[
+  {id:1,name:'Nana Yaa Traders',type:'Aggregator',place:'Makola Market, Accra',town:'Accra',fee:.04,tiers:[[0,.04],[2,.035],[4,.03]]},
+  {id:2,name:'Kojo Asante',type:'Trader',place:'Kejetia Market, Kumasi',town:'Kumasi',fee:.035},
+  {id:3,name:'Mama Esi Catering',type:'Caterer',place:'Sunyani',town:'Sunyani',fee:.03},
+  {id:4,name:'Akosua Boateng',type:'Household',place:'Techiman',town:'Techiman',fee:.02}
+];
+const SORTS=[['match','Best match'],['rating','Top rated'],['near','Nearest to the farm'],['price','Lowest fee']];
+const townOf=l=>l.region.split(',')[0].trim();
+function hav(a,b){const R=6371,t=x=>x*Math.PI/180,dl=t(b[0]-a[0]),dn=t(b[1]-a[1]);const q=Math.sin(dl/2)**2+Math.cos(t(a[0]))*Math.cos(t(b[0]))*Math.sin(dn/2)**2;return 2*R*Math.asin(Math.sqrt(q))}
+const pickupKm=(c,l)=>Math.max(2,Math.round(hav(TOWNS[c.base],TOWNS[townOf(l)])*1.3));
+const deliveryFee=(trip,q,c,pk)=>Math.round((80+trip*1.2+q*4)*c.rate+pk*2);
+const curBuyer=()=>BUYERS.find(b=>b.id===S.buyer);
+function feeFor(b){
+  if(!b.tiers)return b.fee;
+  const done=S.orders.filter(o=>o.buyerId===b.id&&o.status==='released').length;
+  return b.tiers.filter(t=>t[0]<=done).pop()[1];
+}
+const feePct=b=>+(feeFor(b)*100).toFixed(1);
+function loyaltyNote(b){
+  if(!b.tiers)return '';
+  const done=S.orders.filter(o=>o.buyerId===b.id&&o.status==='released').length;
+  const next=b.tiers.find(t=>t[0]>done), left=next?next[0]-done:0;
+  return next?`Repeat-buyer rate: complete ${left} more ${left===1?'order':'orders'} to drop your fee to ${+(next[1]*100).toFixed(1)}%.`:'You have reached the lowest repeat-buyer rate.';
+}
+const tripKm=(l,b)=>Math.max(2,Math.round(hav(TOWNS[townOf(l)],TOWNS[b.town])*1.3));
+const tripFor=l=>tripKm(l,curBuyer());
+const DONE={escrow:1,assigned:2,picked:3,transit:3,arrived:4,disputed:4,released:6};
+STATUS.disputed='Dispute under review';
+/* First-draft Twi. Have a native speaker review before presenting. */
+const TW={
+ 'Buyer':'Ɔtɔfoɔ','Farmer':'Okuafoɔ','Courier':'Ɔsoafoɔ','Market':'Gua','My orders':'Nneɛma a metɔ',
+ 'Cancel':'Gyae','Choose a courier':'Paw ɔsoafoɔ','Continue to payment':'Kɔ so tua sika','Pay into escrow':'Tua sika (escrow)','Pay':'Tua','into escrow':'kɔ escrow mu',
+ 'Total into escrow':'Sika nyinaa a ɛbɛkɔ escrow mu','Your money stays in escrow until you confirm delivery.':'Wo sika no bɛgyina hɔ kɔsi sɛ wobɛgye nneɛma no atom.',
+ 'Approve payment':'Gye sika tua no tom','Delivery code':'Kɔd a ɛwɔ SMS no mu','Goods you are not accepting':'Nneɛma a wonnye ntom',
+ 'Confirm delivery and release payment':'Gye nneɛma no tom na wotua okuafoɔ no','SMS code':'SMS kɔd','QR code':'QR kɔd','Report a problem instead':'Ka ɔhaw no','Report a problem':'Ka ɔhaw no',
+ 'Your earnings today':'Sika a woanya nnɛ','No jobs yet':'Adwuma biara nni hɔ ɛnnɛ','When a buyer pays into escrow, the delivery job appears here.':'Sɛ ɔtɔfoɔ tua sika a, adwuma no bɛda hɔ wɔ ha.',
+ 'Accept this job':'Gye adwuma yi tom','Confirm pickup at the farm':'Wɔagye nneɛma no wɔ afuo so','Start the trip':'Fi ase kɔ',"Scan the buyer's QR code":'Scan ɔtɔfoɔ no QR kɔd no',
+ 'Paid out to mobile money':'Wɔatua wo wɔ mobile money so','Orders for you':'Wɔatɔ wo nneɛma','Your listings':'Wo nneɛma a ɛwɔ gua so','Add a listing':'Fa nneɛma foforɔ to gua so','Publish listing':'Fa nneɛma no to gua so',
+ 'Where the money is, right now':'Sika no wɔ he seesei','Held in escrow':'Sika a ɛwɔ escrow mu','Paid to farmers':'Sika a wɔatua akuafoɔ','Paid to couriers':'Sika a wɔatua asoafoɔ','FarmLink revenue':'FarmLink sika a wonyae','Refunded to buyers':'Sika a wɔsan de maa atɔfoɔ',
+ 'Orders completed':'Nneɛma a wɔawie','Follow one order':'Di nneɛma baako akyi','Activity':'Nea ɛrekɔ so','Reset the demo':'Fi ase bio',
+ 'Payment received. Your money is held in escrow.':'Wɔagye wo sika no. Ɛwɔ escrow mu.','Delivery confirmed. The farmer has been paid.':'Wɔagye nneɛma no. Wɔatua okuafoɔ no.',
+ [STATUS.escrow]:'Wɔatua, ɛrehwehwɛ ɔsoafoɔ',[STATUS.assigned]:'Ɔsoafoɔ no rekɔ afuo no so',[STATUS.picked]:'Wɔagye nneɛma no wɔ afuo so',[STATUS.transit]:'Ɛwɔ kwan so',[STATUS.arrived]:'Aduru, fa kɔd no ba',[STATUS.released]:'Wɔawie',[STATUS.disputed]:'Wɔrehwɛ ɔhaw no'
+};
+const T=s=>(S.lang==='tw'&&TW[s])||s;
+
+function init(){
+  return {
+    couriers:[
+      {id:1,name:'Kofi Adjei',vehicle:'Mini-truck',base:'Techiman',rating:4.8,trips:212,rate:1,cap:120},
+      {id:2,name:'Yaw Mensah',vehicle:'Truck',base:'Techiman',rating:4.6,trips:148,rate:1.25,cap:400},
+      {id:3,name:'Adwoa Pokuaa',vehicle:'Tricycle (aboboyaa)',base:'Tuobodom',rating:4.9,trips:305,rate:.8,cap:25},
+      {id:4,name:'Seidu Abdul',vehicle:'Motorbike',base:'Techiman',rating:4.4,trips:90,rate:.6,cap:8},
+      {id:5,name:'Kwesi Darko',vehicle:'Mini-truck',base:'Nkoranza',rating:4.2,trips:57,rate:.95,cap:120},
+      {id:6,name:'Nana Osei',vehicle:'Truck',base:'Kintampo',rating:4.7,trips:176,rate:1.15,cap:400}
+    ], courier:1,
+    buyer:1, tab:'demo', lang:'en', disputing:null, role:'buyer', bv:'market', filter:'All', farmer:'Ama Serwaa', voice:false,
+    nextId:1001, nextLid:7, sheet:null, form:{phone:'024 123 4567',lcrop:'Tomatoes'},
+    roi:{gmv:150000,com:5},
+    listings:[
+      {id:1,crop:'Tomatoes',emoji:'🍅',farmer:'Ama Serwaa',farm:'Serwaa Fresh Farm',region:'Techiman, Bono East',qty:120,unit:'crate',price:480,harvest:'Harvested today',km:390,verified:true,rating:4.8},
+      {id:2,crop:'Tomatoes',emoji:'🍅',farmer:'Kwadwo Appiah',farm:'Appiah Vegetable Farm',region:'Tuobodom, Bono East',qty:80,unit:'crate',price:465,harvest:'Harvested yesterday',km:400,verified:true,rating:4.5},
+      {id:3,crop:'Tomatoes',emoji:'🍅',farmer:'Akosua Frimpong',farm:'Frimpong Farms',region:'Techiman, Bono East',qty:60,unit:'crate',price:495,harvest:'Harvested today',km:392,verified:false,rating:4.1},
+      {id:4,crop:'Maize',emoji:'🌽',farmer:'Yaw Boateng',farm:'Boateng and Sons',region:'Techiman, Bono East',qty:200,unit:'bag',price:720,harvest:'Dried and bagged',km:390,verified:true,rating:4.7},
+      {id:5,crop:'Maize',emoji:'🌽',farmer:'Abena Owusu',farm:'Owusu Farms',region:'Nkoranza, Bono East',qty:150,unit:'bag',price:705,harvest:'Dried and bagged',km:370,verified:true,rating:4.6},
+      {id:6,crop:'Maize',emoji:'🌽',farmer:'Mohammed Seidu',farm:'Seidu Grains',region:'Tuobodom, Bono East',qty:90,unit:'bag',price:735,harvest:'Dried and bagged',km:400,verified:true,rating:4.3}
+    ],
+    orders:[], log:[],
+    ledger:{escrow:0,farmers:0,couriers:0,platform:0,refunds:0,gmv:0,done:0,disputes:0}
+  };
+}
+let S=init();
+
+const $=s=>document.querySelector(s);
+const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const r2=n=>Math.round(n*100)/100;
+const money=(n,d=0)=>'GH¢'+Number(n).toLocaleString('en-US',{minimumFractionDigits:d,maximumFractionDigits:d});
+const usd=n=>'US$'+Math.round(n).toLocaleString('en-US');
+const plural=(u,n)=>n===1?u:u+(u==='bunch'?'es':'s');
+const now=()=>new Date().toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'});
+function log(t){S.log.unshift({t:now(),text:t});S.log=S.log.slice(0,30)}
+let toastTimer;
+function toast(m){const t=$('#toast');t.textContent=m;t.hidden=false;clearTimeout(toastTimer);toastTimer=setTimeout(()=>t.hidden=true,3200)}
+
+function orderMath(l,q,c){
+  const produce=l.price*q, sellerFee=r2(produce*.03), buyerFee=r2(produce*feeFor(curBuyer()));
+  const delivery=c?deliveryFee(tripFor(l),q,c,pickupKm(c,l)):0;
+  return {produce,sellerFee,buyerFee,delivery,paid:r2(produce+buyerFee+delivery)};
+}
+function courierOptions(l,q,sort){
+  const trip=tripFor(l);
+  const rows=S.couriers.map(c=>{
+    const km=pickupKm(c,l),fee=deliveryFee(trip,q,c,km);
+    const far=trip>RANGE[c.vehicle], small=q>c.cap;
+    const fit=Math.log10(c.cap/Math.max(q,1))*0.35; // prefer a vehicle sized for the load
+    return {c,km,fee,trip,mins:Math.max(5,Math.round(km/30*60)),ok:!far&&!small,why:far?'far':(small?'small':''),score:c.rating-km*0.02-fee*0.0005-Math.max(0,fit)};
+  });
+  const top=rows.filter(r=>r.ok).sort((a,b)=>b.score-a.score)[0];
+  rows.forEach(r=>{r.best=r===top});
+  const keys={match:(a,b)=>b.score-a.score,rating:(a,b)=>b.c.rating-a.c.rating,near:(a,b)=>a.km-b.km,price:(a,b)=>a.fee-b.fee};
+  return rows.sort((a,b)=>(Number(b.ok)-Number(a.ok))||(keys[sort]||keys.match)(a,b));
+}
+
+/* ---------- phone views ---------- */
+function whoLine(){
+  if(S.role==='buyer'){const b=curBuyer();return `<b>Akwaaba, ${esc(b.name)}</b><small>${esc(b.type)}, ${esc(b.place)}</small>`}
+  if(S.role==='farmer')return `<b>Akwaaba, ${esc(S.farmer)}</b><small>Farmer, verified with Ghana Card</small>`;
+  const c=S.couriers.find(x=>x.id===S.courier);
+  return `<b>Akwaaba, ${esc(c.name)}</b><small>Courier, ${esc(c.vehicle)}, based in ${esc(c.base)}</small>`;
+}
+function phone(){
+  const n={
+    buyer:S.orders.filter(o=>o.buyerId===S.buyer&&o.status==='arrived').length,
+    courier:S.orders.filter(o=>o.courierId===S.courier&&['escrow','assigned','picked'].includes(o.status)).length,
+    farmer:S.orders.filter(o=>o.fid===S.farmer&&o.status==='escrow').length
+  };
+  const tabs=[['buyer','Buyer'],['farmer','Farmer'],['courier','Courier']].map(([k,l])=>
+    `<button role="tab" class="rtab" data-a="role" data-role="${k}" aria-selected="${S.role===k}">${T(l)}${n[k]?`<i class="dot">${n[k]}</i>`:''}</button>`).join('');
+  const body=S.role==='buyer'?buyerView():S.role==='farmer'?farmerView():courierView();
+  return `<div class="phone"><div class="app-head"><div class="headrow"><div class="who">${whoLine()}</div><div class="lang" role="group" aria-label="Language"><button data-a="lang" data-v="en" aria-pressed="${S.lang==='en'}">English</button><button data-a="lang" data-v="tw" aria-pressed="${S.lang==='tw'}">Twi</button></div></div><div class="rtabs" role="tablist" aria-label="Switch user role">${tabs}</div></div><div class="app-body">${body}</div>${sheet()}</div>`;
+}
+
+function card(l){
+  const out=l.qty<=0;
+  return `<button class="item" data-a="open" data-id="${l.id}" ${out?'disabled':''}>
+    <span class="ico">${l.emoji}</span>
+    <span class="meta"><b>${esc(l.crop)}</b>
+      <em>${esc(l.farm)}, ${esc(l.region)}</em>
+      <small>${out?'Sold out':l.qty+' '+plural(l.unit,l.qty)+' left'}${l.verified?' &nbsp;<span class="ver">✓ Verified farm</span>':''}</small>
+      <small>${esc(l.harvest)}, ${tripFor(l)} km to ${esc(curBuyer().town)}, ★ ${l.rating}${l.voice?' &nbsp;🎙 Voice note':''}</small></span>
+    <span class="price">${money(l.price)}<small>per ${l.unit}</small></span></button>`;
+}
+
+function buyerView(){
+  const bu=curBuyer();
+  const mine=S.orders.filter(o=>o.buyerId===S.buyer);
+  const who=`<label>Buying as<select data-f="buyer">${BUYERS.map(b=>`<option value="${b.id}" ${b.id===S.buyer?'selected':''}>${esc(b.name)}, ${esc(b.type)}</option>`).join('')}</select></label>`;
+  const sub=`<div class="seg" style="margin-top:12px"><button data-a="bv" data-v="market" aria-pressed="${S.bv==='market'}">${T('Market')}</button><button data-a="bv" data-v="orders" aria-pressed="${S.bv==='orders'}">${T('My orders')}${mine.length?' ('+mine.length+')':''}</button></div>`;
+  if(S.bv==='orders'){
+    const list=[...mine].reverse().map(orderCard).join('')||`<div class="empty"><b>No orders yet</b>Open the market and tap a listing to place your first order.</div>`;
+    return who+sub+list;
+  }
+  const chips=['All',...Object.keys(CROPS)].map(c=>`<button class="chip-f" data-a="filter" data-v="${c}" aria-pressed="${S.filter===c}">${c}</button>`).join('');
+  const items=S.listings.filter(l=>S.filter==='All'||l.crop===S.filter).map(card).join('')||`<div class="empty"><b>Nothing listed</b>Try another crop.</div>`;
+  return who+sub+`<p class="pilot">Sample pilot: tomatoes and maize from farms around Techiman, Bono East. As a ${esc(bu.type.toLowerCase())} in ${esc(bu.town)} your FarmLink service fee is ${feePct(bu)}%. ${loyaltyNote(bu)} Phase 0 confirms the real region and crops.</p><div class="chips">${chips}</div>`+items;
+}
+
+function trackHtml(o){
+  return `<div class="track"><span>Farm</span><div class="rail"><i data-prog="${o.id}" style="width:${o.progress}%"></i><b data-dot="${o.id}" style="left:${o.progress}%">🚚</b></div><span>${esc(o.dest)}</span></div>
+  <small>${o.status==='transit'?'Live position, with SMS updates if data drops':STATUS[o.status]}</small>`;
+}
+function qrSvg(text){
+  try{const q=qrcode(0,'M');q.addData(text);q.make();return q.createSvgTag({cellSize:4,margin:0,scalable:true})}catch(e){return ''}
+}
+function confirmHtml(o){
+  if(S.disputing===o.id)return disputeForm(o);
+  const m=S.form['m_'+o.id]||'sms';
+  const rej=S.form['rej_'+o.id]||'0';
+  const opts=[['0','None, accept everything'],['0.1','About 10%'],['0.25','About 25%'],['0.5','About half']].map(([v,l])=>`<option value="${v}" ${rej===v?'selected':''}>${l}</option>`).join('');
+  const tabs=`<div class="seg" style="margin:0"><button data-a="method" data-id="${o.id}" data-v="sms" aria-pressed="${m==='sms'}">${T('SMS code')}</button><button data-a="method" data-id="${o.id}" data-v="qr" aria-pressed="${m==='qr'}">${T('QR code')}</button></div>`;
+  const rejField=`<label>${T('Goods you are not accepting')}<select data-f="rej_${o.id}">${opts}</select></label>`;
+  let body;
+  if(m==='qr'){
+    body=`${rejField}<div class="qrbox" role="img" aria-label="Delivery QR code">${qrSvg('farmlink://confirm?order='+o.id+'&code='+o.code)||('<b>'+o.code+'</b>')}</div>
+    <small>Show this QR code to the courier. When the courier scans it, payment is released with the choice you made above. In this demo, switch to Courier and tap the scan button.</small>`;
+  }else{
+    body=`<div class="sms"><small>SMS from FarmLink, ${o.arrivedAt||now()}</small>Your delivery code is <b>${o.code}</b>. Share it only after the goods arrive and you have checked them.</div>
+    <label>${T('Delivery code')}<input inputmode="numeric" maxlength="4" autocomplete="off" placeholder="4 digits" data-f="code_${o.id}" value="${esc(S.form['code_'+o.id]||'')}"></label>
+    ${rejField}
+    <button class="btn gold" data-a="confirm" data-id="${o.id}">${T('Confirm delivery and release payment')}</button>`;
+  }
+  return `<div class="confirm">${tabs}${body}<button class="link2" data-a="dispute" data-id="${o.id}">${T('Report a problem instead')}</button></div>`;
+}
+function disputeForm(o){
+  const f=S.form;
+  const reasons=['Goods damaged or spoiled','Wrong crop delivered','Quantity is short','Quality is poor','Something else'];
+  const opts=['<option value="">Choose a reason</option>',...reasons.map(r=>`<option ${f['dr_'+o.id]===r?'selected':''}>${r}</option>`)].join('');
+  const want=f['dw_'+o.id]||'partial';
+  return `<div class="confirm"><b>${T('Report a problem')}</b>
+    <small>Your payment stays in escrow while FarmLink reviews. The plan sets a 24 to 48 hour dispute window.</small>
+    <label>What went wrong<select data-f="dr_${o.id}">${opts}</select></label>
+    <label>What would fix it<select data-f="dw_${o.id}"><option value="partial" ${want==='partial'?'selected':''}>A partial refund</option><option value="full" ${want==='full'?'selected':''}>A full refund</option></select></label>
+    <button class="btn ghost" data-a="photo" data-id="${o.id}">${f['dp_'+o.id]?'📷 Photos attached. Tap to remove':'📷 Attach photo evidence'}</button>
+    <button class="btn primary" data-a="submitDispute" data-id="${o.id}">Send to the dispute desk</button>
+    <button class="btn ghost" data-a="cancelDispute">Back</button></div>`;
+}
+function receiptHtml(o){
+  const rate=o.rated?`<small style="display:block;margin-top:8px">You rated ${esc(o.courierName)} ${o.rated} out of 5.</small>`:`<div class="rate"><small>Rate ${esc(o.courierName)}:</small>${[1,2,3,4,5].map(v=>`<button class="chip-f" data-a="rate" data-id="${o.id}" data-v="${v}">${v}★</button>`).join('')}</div>`;
+  return `<div class="rows">
+    <div><span>Farmer receives</span><b>${money(o.farmerPay,2)}</b></div>
+    <div><span>Courier receives</span><b>${money(o.courierPay,2)}</b></div>
+    <div><span>FarmLink fees</span><b>${money(o.platformPay,2)}</b></div>
+    <div><span>Refunded to you</span><b>${money(o.refund,2)}</b></div></div>
+    <small>${o.resolution?'Dispute resolved: '+esc(o.resolution)+'. ':''}${o.farmerPay>0?'Farmer paid to '+esc(o.net)+' the moment payment was released.':''}</small>${rate}`;
+}
+function orderCard(o){
+  let extra=`<small style="display:block;margin-top:8px">Courier: ${esc(o.courierName)}, ${esc(o.vehicle)}, ${o.pickupKm} km from the farm</small>`;
+  if(['assigned','picked','transit'].includes(o.status))extra+=trackHtml(o);
+  if(o.status==='arrived')extra+=confirmHtml(o);
+  if(o.status==='disputed')extra+=`<small style="display:block;margin-top:10px">Reported: ${esc(o.dispute.reason)}. Your ${money(o.paid,2)} stays in escrow until the dispute desk decides.</small>`;
+  if(o.status==='released')extra+=receiptHtml(o);
+  return `<article class="ord"><header><span class="ico sm">${o.emoji}</span><div><b>${o.qty} ${plural(o.unit,o.qty)} of ${esc(o.crop)}</b><small>${esc(o.farmer)}, ${money(o.paid,2)} paid</small></div><span class="chip s-${o.status}">${T(STATUS[o.status])}</span></header>${extra}</article>`;
+}
+
+function courierView(){
+  const me=S.couriers.find(c=>c.id===S.courier);
+  const mine=S.orders.filter(o=>o.courierId===S.courier);
+  const jobs=mine.filter(o=>o.status!=='released');
+  const earnedAmt=mine.filter(o=>o.status==='released').reduce((a,o)=>a+o.courierPay,0);
+  const opts=S.couriers.map(c=>`<option value="${c.id}" ${c.id===S.courier?'selected':''}>${esc(c.name)}, ${esc(c.vehicle)}</option>`).join('');
+  const head=`<label>Viewing as<select data-f="courier">${opts}</select></label><div class="wallet" style="margin-top:12px"><small>${T('Your earnings today')}</small><div class="big">${money(earnedAmt,2)}</div><small>★ ${me.rating.toFixed(1)} from ${me.trips} trips</small></div>`;
+  if(!jobs.length)return head+`<div class="empty"><b>${T('No jobs yet')}</b>${T('When a buyer pays into escrow, the delivery job appears here.')} Buyers choose couriers by rating, distance and fee.</div>`;
+  return head+jobs.map(o=>{
+    let act={escrow:['accept','Accept this job'],assigned:['pickup','Confirm pickup at the farm'],picked:['start','Start the trip']}[o.status];
+    if(o.status==='arrived'&&S.form['m_'+o.id]==='qr')act=['scan',"Scan the buyer's QR code"];
+    const note={transit:'Driving. Position is shared with the buyer.',arrived:'Waiting for the buyer to enter the delivery code or choose QR.',disputed:'Delivered. The buyer reported a problem and FarmLink is reviewing it. Your delivery fee is not affected.'}[o.status]||'';
+    return `<article class="ord"><header><span class="ico sm">${o.emoji}</span><div><b>${o.qty} ${plural(o.unit,o.qty)} of ${esc(o.crop)}</b><small>${esc(o.region)} to ${esc(o.dest)}, ${o.trip} km. Farm is ${o.pickupKm} km from you. You earn ${money(r2(o.delivery*.9),2)}</small></div></header>
+      ${['assigned','picked','transit','arrived'].includes(o.status)?trackHtml(o):''}
+      ${act?`<div style="margin-top:12px"><button class="btn primary" data-a="${act[0]}" data-id="${o.id}">${T(act[1])}</button></div>`:`<small style="display:block;margin-top:10px">${note}</small>`}</article>`;
+  }).join('');
+}
+
+function farmerView(){
+  const farmers=[...new Set(S.listings.map(l=>l.farmer))];
+  const mine=S.orders.filter(o=>o.fid===S.farmer);
+  const paid=mine.filter(o=>o.status==='released').reduce((a,o)=>a+o.farmerPay,0);
+  const held=mine.filter(o=>o.status!=='released').reduce((a,o)=>a+(o.produce-o.sellerFee),0);
+  const opts=farmers.map(f=>`<option ${f===S.farmer?'selected':''}>${esc(f)}</option>`).join('');
+  const crops=Object.keys(CROPS).map(c=>`<option ${S.form.lcrop===c?'selected':''}>${c}</option>`).join('');
+  const myL=S.listings.filter(l=>l.farmer===S.farmer).map(l=>`<div class="item" style="cursor:default"><span class="ico sm">${l.emoji}</span><span class="meta"><b>${esc(l.crop)}</b><small>${l.qty} ${plural(l.unit,l.qty)} left${l.voice?', voice note attached':''}</small></span><span class="price">${money(l.price)}<small>per ${l.unit}</small></span></div>`).join('');
+  const ords=[...mine].reverse().map(o=>`<article class="ord"><header><span class="ico sm">${o.emoji}</span><div><b>${o.qty} ${plural(o.unit,o.qty)} of ${esc(o.crop)}</b><small>${o.status==='released'?(o.farmerPay>0?'Paid '+money(o.farmerPay,2)+' to '+esc(o.net):'Settled with a full refund to the buyer'):(o.status==='disputed'?'Buyer reported a problem. FarmLink is reviewing it.':'Money is safe in escrow: '+money(o.produce-o.sellerFee,2))}</small></div><span class="chip s-${o.status}">${T(STATUS[o.status])}</span></header></article>`).join('')||`<div class="empty"><b>No orders yet</b>Place an order for ${esc(S.farmer)}'s produce as the buyer.</div>`;
+  return `<label>Viewing as<select data-f="farmer">${opts}</select></label>
+  <div class="wallet" style="margin-top:12px"><small>${T('Paid out to mobile money')}</small><div class="big">${money(paid,2)}</div><small>${held?money(held,2)+' waiting in escrow':'Nothing waiting in escrow'}</small></div>
+  <h3 class="sect">${T('Orders for you')}</h3>${ords}
+  <h3 class="sect">${T('Your listings')}</h3>${myL}
+  <h3 class="sect">${T('Add a listing')}</h3>
+  <div class="form">
+    <label>Crop<select data-f="lcrop">${crops}</select></label>
+    <div class="two"><label>Quantity (${plural(UNITS[S.form.lcrop||'Tomatoes'],2)})<input type="number" inputmode="numeric" min="1" data-f="lqty" value="${esc(S.form.lqty||'')}"></label>
+    <label>Price per ${UNITS[S.form.lcrop||'Tomatoes']} (GH¢)<input type="number" inputmode="decimal" min="1" data-f="lprice" value="${esc(S.form.lprice||'')}"></label></div>
+    <button class="btn ghost" data-a="voice">${S.voice?'🎙 Voice note attached, 0:12. Tap to remove':'🎙 Record a voice note in Twi or English'}</button>
+    <button class="btn primary" data-a="addListing">${T('Publish listing')}</button></div>`;
+}
+
+function sheet(){
+  const sh=S.sheet; if(!sh)return '';
+  const l=S.listings.find(x=>x.id===sh.lid), bu=curBuyer();
+  const c=sh.courierId?S.couriers.find(x=>x.id===sh.courierId):null;
+  const b=orderMath(l,sh.qty,c);
+  let inner='';
+  if(sh.step==='qty'){
+    inner=`<h3>${esc(l.crop)} from ${esc(l.farmer)}</h3><small>${esc(l.farm)}, ${esc(l.region)}. ${l.verified?'Verified farm.':'Verification pending.'}</small>
+    <div class="stepper"><button data-a="qdown" aria-label="Fewer">−</button><output>${sh.qty} ${plural(l.unit,sh.qty)}</output><button data-a="qup" aria-label="More">+</button></div>
+    <div class="rows"><div><span>Produce</span><span>${money(b.produce,2)}</span></div><div><span>FarmLink service fee (${feePct(bu)}%)</span><span>${money(b.buyerFee,2)}</span></div><div class="tot"><span>Subtotal</span><span>${money(b.produce+b.buyerFee,2)}</span></div></div>
+    <p style="margin:12px 0"><small>Your service fee is ${feePct(bu)}% as a ${esc(bu.type.toLowerCase())}. Next you choose a courier, and delivery to ${esc(bu.town)} is added to the total. ${loyaltyNote(bu)}</small></p>
+    <button class="btn primary" data-a="toCourier">${T('Choose a courier')}</button><button class="btn ghost" style="margin-top:8px" data-a="closeSheet">${T('Cancel')}</button>`;
+  }else if(sh.step==='courier'){
+    const trip=tripFor(l);
+    const sorts=SORTS.map(([k,lab])=>`<button class="chip-f" data-a="sort" data-v="${k}" aria-pressed="${sh.sort===k}">${lab}</button>`).join('');
+    const cards=courierOptions(l,sh.qty,sh.sort).map(r=>`<button class="cour" data-a="pickCourier" data-id="${r.c.id}" aria-pressed="${sh.courierId===r.c.id}" ${r.ok?'':'disabled'}>
+      <span class="ico sm">${VEH[r.c.vehicle]}</span>
+      <span class="meta"><b>${esc(r.c.name)}${r.best?'<span class="best">Best match</span>':''}</b><small>${esc(r.c.vehicle)}, based in ${esc(r.c.base)}</small><small>★ ${r.c.rating.toFixed(1)} from ${r.c.trips} trips. ${r.km} km from the farm, about ${r.mins} min away</small>${r.ok?'':`<small style="color:var(--clay)">${r.why==='far'?'Too far: this vehicle covers trips up to '+RANGE[r.c.vehicle]+' km':'Too small: carries up to '+r.c.cap+' '+plural(l.unit,r.c.cap)}</small>`}</span>
+      <span class="price">${money(r.fee)}<small>delivery</small></span></button>`).join('');
+    inner=`<h3>${T('Choose a courier')}</h3><small>${sh.qty} ${plural(l.unit,sh.qty)} of ${esc(l.crop)} from ${esc(l.region)} to ${esc(bu.place)}, about ${trip} km. Distances are approximate road kilometres. Only couriers whose vehicle can carry this load over this distance can be chosen. Best match weighs rating, distance to the farm, fee and vehicle size.</small>
+    <div class="chips" style="margin:10px 0 6px">${sorts}</div>${cards}
+    <button class="btn primary" style="margin-top:6px" data-a="toPay">${T('Continue to payment')}</button><button class="btn ghost" style="margin-top:8px" data-a="backQty">Back</button>`;
+  }else if(sh.step==='pay'){
+    const nets=NETS.map(n=>`<button data-a="net" data-v="${n}" aria-pressed="${sh.net===n}">${n}<span>${sh.net===n?'✓':''}</span></button>`).join('');
+    inner=`<h3>${T('Pay into escrow')}</h3><small>Funds are held by a licensed payment partner, not by FarmLink. Mobile money first, bank and card later.</small>
+    <div class="rows"><div><span>Produce</span><span>${money(b.produce,2)}</span></div><div><span>Delivery by ${esc(c.name)}</span><span>${money(b.delivery,2)}</span></div><div><span>FarmLink service fee (${feePct(bu)}%)</span><span>${money(b.buyerFee,2)}</span></div><div class="tot"><span>${T('Total into escrow')}</span><span>${money(b.paid,2)}</span></div></div>
+    <p style="margin:10px 0"><small>${T('Your money stays in escrow until you confirm delivery.')}</small></p>
+    <div class="nets">${nets}</div>
+    <label>Mobile money number<input inputmode="tel" data-f="phone" value="${esc(S.form.phone||'')}"></label>
+    <button class="btn primary" style="margin-top:12px" data-a="pay">${T('Pay')} ${money(b.paid,2)} ${T('into escrow')}</button><button class="btn ghost" style="margin-top:8px" data-a="toCourier">Back</button><button class="btn ghost" style="margin-top:8px" data-a="closeSheet">${T('Cancel')}</button>`;
+  }else{
+    inner=`<h3>Approve on your phone</h3><small>This is how the real prompt appears on the buyer's handset.</small>
+    <div class="ussd"><div><b>${esc(sh.net)}</b><br>Pay ${money(b.paid,2)} into the escrow account held by FarmLink's licensed payment partner?</div><label style="color:#9db0a3">Enter your PIN<input type="password" inputmode="numeric" maxlength="4" placeholder="••••" data-f="pin" autocomplete="off"></label><small>Demo: type any 4 digits.</small></div>
+    <button class="btn primary" data-a="approve">${T('Approve payment')}</button><button class="btn ghost" style="margin-top:8px" data-a="closeSheet">${T('Cancel')}</button>`;
+  }
+  return `<div class="sheetwrap" data-a="closeSheet" data-bg="1"><div class="sheet" role="dialog" aria-modal="true">${inner}</div></div>`;
+}
+
+/* ---------- side panel ---------- */
+function hintFor(last){
+  if(!last)return ['As the buyer, tap the tomatoes from Techiman and place an order.','buyer','Go to Buyer'];
+  return {
+    escrow:[`The money is held in escrow and the job went to ${last.courierName}. Switch to Courier and accept it.`,'courier','Go to Courier'],
+    assigned:['As the courier, confirm pickup at the farm.','courier','Go to Courier'],
+    picked:['Start the trip to see live tracking.','courier','Go to Courier'],
+    transit:['The truck is on the road. Watch it move, then switch to Buyer.','buyer','Go to Buyer'],
+    arrived:['The goods have arrived. As the buyer, confirm with the SMS code or the QR code, or report a problem.','buyer','Go to Buyer'],
+    disputed:['A dispute is open and the money is frozen. Decide it in the Dispute desk below to see how escrow settles.',null,''],
+    released:['Payment released. Open the Farmer view to see the payout, or place another order.','farmer','Go to Farmer']
+  }[last.status];
+}
+function panel(){
+  const L=S.ledger, total=L.escrow+L.farmers+L.couriers+L.platform+L.refunds;
+  const segs=[['Held in escrow',L.escrow,'#E3A72F'],['Paid to farmers',L.farmers,'#6FCB98'],['Paid to couriers',L.couriers,'#86B6F0'],['FarmLink revenue',L.platform,'#F08A66'],['Refunded to buyers',L.refunds,'#B8C2BB']];
+  const bar=total?segs.filter(s=>s[1]>0).map(s=>`<i style="flex:${s[1]};background:${s[2]}"></i>`).join(''):'';
+  const legend=segs.map(s=>`<div><span class="sw" style="background:${s[2]}"></span>${T(s[0])}<b>${money(s[1])}</b></div>`).join('');
+  const last=S.orders[S.orders.length-1];
+  const done=last?DONE[last.status]:0;
+  const steps=STEPS.map((t,i)=>{const c=i<done?'done':(i===done&&done<6&&last?'now':'');const label=(i===4&&last&&last.status==='disputed')?'Dispute under review':t;return `<li class="${c}"><span class="c">${i<done?'✓':i+1}</span>${label}</li>`}).join('');
+  const h=hintFor(last);
+  const logs=S.log.slice(0,6).map(e=>`<div><time>${e.t}</time><span>${esc(e.text)}</span></div>`).join('')||'<small>Events appear here as the order moves.</small>';
+  const dis=S.orders.filter(o=>o.status==='disputed');
+  const desk=dis.length?`<div><h2 style="font-size:22px">Dispute desk</h2>${dis.map(o=>`<div class="case"><b>Order #${o.id}: ${esc(o.crop)} from ${esc(o.farmer)}</b><small>Buyer says: ${esc(o.dispute.reason)}. Wants ${o.dispute.want==='full'?'a full refund':'a partial refund'}. ${o.dispute.photos?'Photos attached. ':''}${money(o.paid,2)} is frozen in escrow.</small><div class="acts"><button class="btn" data-a="resolve" data-id="${o.id}" data-v="1">Refund buyer in full</button><button class="btn" data-a="resolve" data-id="${o.id}" data-v="0.5">Split 50/50</button><button class="btn" data-a="resolve" data-id="${o.id}" data-v="0">Pay the farmer in full</button></div></div>`).join('')}</div>`:'';
+  const rate=S.orders.length?Math.round(L.disputes/S.orders.length*100):0;
+  return `<div><h2>${T('Where the money is, right now')}</h2><small>What the platform sees across all buyers, farmers and couriers. In production, a licensed payment partner holds the escrow funds.</small>
+    <div class="mbar" role="img" aria-label="Split of money handled">${bar}</div><div class="legend">${legend}</div></div>
+  <div class="stats"><div><small>${T('Orders completed')}</small><b>${L.done}</b></div><div><small>Order value delivered</small><b>${money(L.gmv)}</b></div><div><small>Dispute rate (goal: under 5%)</small><b>${rate}%</b></div></div>
+  <div><h2 style="font-size:22px">${T('Follow one order')}</h2>
+    <ol class="steps">${steps}</ol>
+    <div class="hint"><span>${h[0]}</span>${h[1]?`<button class="btn" data-a="role" data-role="${h[1]}" data-buyer="${last?last.buyerId:''}" data-courier="${last?last.courierId:''}" data-farmer="${last?esc(last.fid):''}">${h[2]} view</button>`:''}</div></div>
+  ${desk}
+  <div><h2 style="font-size:22px">${T('Activity')}</h2><div class="log">${logs}</div></div>
+  <div style="display:grid;gap:4px"><button class="link" data-a="tab" data-tab="inv">Read the investor summary</button><button class="link" data-a="reset">${T('Reset the demo')}</button></div>`;
+}
+function demoView(){return `<div class="demo"><section aria-label="FarmLink app prototype">${phone()}</section><aside class="panel" aria-label="Platform view">${panel()}</aside></div>`}
+
+/* ---------- investor page ---------- */
+const PHASES=[
+  ['Phase 0: Validate and set up','Months 1 to 2',7700,'about GH¢88,500',['3+ aggregators committed to buy','50+ farmers interested','A payment partner agreed in principle']],
+  ['Phase 1: MVP and pilot','Months 3 to 8',53400,'about GH¢614,000',['200+ verified farmers and 30+ buyers','300+ completed orders','Fewer than 5% of orders disputed','Farmers paid within 24 hours of delivery']],
+  ['Phase 2: Growth','Months 9 to 18',165000,'about GH¢1.9 million',['3,000+ farmers and 150+ aggregators','About US$150,000 in monthly order value','A clear path to break-even']]
+];
+function roiNums(){
+  const g=S.roi.gmv,c=S.roi.com/100,rev=g*(c+.005),cost=16000;
+  return {rev,cost,net:rev-cost,be:cost/(c+.005),cover:Math.min(100,rev/cost*100)};
+}
+function investorView(){
+  const n=roiNums();
+  const phases=PHASES.map(p=>`<div class="phase"><div><h3>${p[0]}</h3><small>${p[1]}</small></div><div><b class="disp" style="font-size:24px">${usd(p[2])}</b> <small>${p[3]}</small><div class="pbar"><i style="width:${Math.max(3,p[2]/165000*100)}%"></i></div><small>Exit criteria before the next stage is funded:</small><ul>${p[4].map(x=>`<li>${x}</li>`).join('')}</ul></div></div>`).join('');
+  const segs=[['1','Aggregators and traders','Initial demand engine and bulk volume'],['2','Smallholder farmers and cooperatives','Supply side'],['3','Restaurants, caterers, schools and retailers','Recurring business buyers'],['4','Households','Smaller marketplace orders'],['5','Couriers','Delivery network']].map(r=>`<tr><td>${r[0]}</td><td><b>${r[1]}</b></td><td>${r[2]}</td></tr>`).join('');
+  const risks=[['Farmer onboarding','Field agents, voice notes, local languages and USSD'],['Marketplace cold start','Secure aggregator demand first and focus on one region and crop'],['Payment regulation','Partner with a licensed provider and get legal advice early'],['Off-platform deals','Make escrow, ratings and delivery valuable to users'],['Courier and spoilage risk','Courier vetting, ratings, pickup windows and cold-chain partners'],['Fraud and fake listings','ID verification, GPS farm pinning, agent visits and ratings'],['Weak network and power','Offline-first app and SMS fallback']].map(r=>`<tr><th>${r[0]}</th><td>${r[1]}</td></tr>`).join('');
+  const kpis=['Verified farmers, aggregators and buyers','Completed orders and total order value','Repeat purchase rate','Escrow release time','Dispute rate','On-time delivery','Spoilage and rejection rate','Customer acquisition cost','Revenue per order'].map(k=>`<li>${k}</li>`).join('');
+  return `<div class="inv">
+  <div class="hero"><div><h1>Money moves when the produce does.</h1>
+    <p class="lead">I am building FarmLink Ghana, a marketplace where buyers pay into escrow, a courier delivers, and the farmer is paid once delivery is confirmed. I plan to start with one region, one or two crops and a focused group of aggregators, prove the model with real orders, and scale on evidence.</p></div>
+    <div class="ask"><div class="disp">about US$61,000</div><small>My starting ask: Phases 0 and 1, to validate the market, build the MVP and run one real supply chain.</small><small>The full path through Phase 2 is about US$226,000, released in stages. I am not asking for all of it upfront.</small><button class="btn" data-a="tab" data-tab="demo">Try the working demo</button></div></div>
+  <p class="disc">All financial figures are planning estimates. I will replace them with verified quotations before capital is committed, and the projections are assumptions to test in the pilot, not forecasts.</p>
+
+  <section><h2>The problem I want to solve</h2><div class="cols">
+    <div class="card"><h3>Today</h3><ul><li>A few middlemen set prices, so farm income is low and unpredictable.</li><li>There is no trusted way to pay across distance, so deals fall through or need cash on the spot.</li><li>Poor roads and no cold chain cause heavy spoilage, especially for tomatoes, leafy vegetables and fruit.</li><li>Farmers have limited price information and sell below market value.</li><li>Buyers cannot easily verify quality or farm location.</li></ul></div>
+    <div class="card"><h3>With FarmLink</h3><ul><li>Payment is protected in escrow through a licensed payment partner.</li><li>Verified farms, GPS-pinned locations and ratings build trust.</li><li>Couriers are matched to every order and deliveries are tracked.</li><li>An offline-first Android app, English, Twi and Ga with voice support, and field agents for farmers with limited digital literacy.</li></ul></div></div></section>
+
+  <section><h2>How one transaction works</h2>
+    <ol class="flow"><li><b>List:</b> a farmer lists produce with quantity, price, harvest date, location and photos, video or voice.</li><li><b>Buy:</b> an aggregator, business or consumer finds the produce and places an order.</li><li><b>Pay:</b> payment goes through a licensed payment partner and is protected by escrow.</li><li><b>Deliver:</b> a courier is matched to the order and the delivery is tracked.</li><li><b>Confirm:</b> the buyer confirms delivery by OTP or QR code, and a dispute window is available.</li><li><b>Release:</b> funds go to the farmer after confirmation.</li></ol></section>
+
+  <section><h2>Who it is for</h2><div class="card"><table><tr><th>Priority</th><th>Customer</th><th>Role</th></tr>${segs}</table></div></section>
+
+  <section><h2>How I enter the market</h2><div class="cols">
+    <div class="card"><h3>A deliberately narrow start</h3><ul><li>One production region with a short route to a major market.</li><li>One or two crops, chosen from what the first aggregators need.</li><li>Secure 10 to 30 aggregators before recruiting farmers.</li><li>Field agents register farmers, create listings and help with payments.</li><li>Cooperatives, local-language radio, WhatsApp groups and referral rewards.</li><li>Reduced commission for the first 100 trades.</li></ul></div>
+    <div class="card"><h3>Where I can differentiate</h3><ul><li>Escrow and delivery confirmation in one flow.</li><li>Courier matching and tracking built in.</li><li>Field-agent onboarding for low-literacy farmers.</li><li>Local-language voice support.</li><li>Aggregator-focused bulk ordering.</li></ul></div></div>
+    <p style="margin-top:16px;color:var(--muted);max-width:70ch">I know FarmLink enters a market where AgroCenta, Farmerline and Esoko, along with informal WhatsApp groups and traders, already serve parts of the value chain. My opportunity depends on executing the combined trust, payment and logistics model well.</p></section>
+
+  <section><h2>Staged funding</h2><p style="color:var(--muted);max-width:62ch">Each phase must show progress before the next is funded. If I build the web and backend myself, Phase 1 could fall to about US$25,000 to 30,000 by outsourcing only the mobile app and design. Phase 3 (months 19 to 36, US$350,000 to 600,000) is a later round, raised against real traction.</p>
+    <div style="margin-top:12px">${phases}</div></section>
+
+  <section><h2>How I plan to make money</h2>
+    <div class="card"><table><tr><th>Commission</th><td>3% to 7% of order value</td></tr><tr><th>In this demo</th><td>3% from the seller, plus a buyer service fee that depends on who is buying: 2% household, 3% caterer, 3.5% trader and 4% aggregator, so businesses pay more because they resell at a profit. Aggregators earn a repeat-buyer rate, 3.5% after 2 completed orders and 3% after 4, which rewards the repeat on-platform trades the plan depends on.</td></tr><tr><th>Delivery margin</th><td>8% to 12% of each courier fee</td></tr><tr><th>Aggregator premium</th><td>US$15 to 30 per month</td></tr><tr><th>Later</th><td>Inputs marketplace, financing referrals, data and price insights</td></tr></table><p style="margin-top:10px"><small>Farmers join for free. Payment and escrow costs are built into pricing so unit economics stay positive.</small></p></div>
+    <div class="card" style="margin-top:16px"><h3>Assumptions I will test</h3><table><tr><th>Milestone</th><th>Monthly order value</th><th>Monthly revenue</th></tr><tr><td>End of Phase 1, month 8</td><td>about US$15,000</td><td>about US$1,000</td></tr><tr><td>End of Phase 2, month 18</td><td>about US$150,000</td><td>about US$10,000 to 12,000</td></tr><tr><td>Month 36</td><td>about US$1,000,000+</td><td>about US$70,000+</td></tr></table></div>
+    <div class="roi" style="margin-top:18px"><h3 class="disp" style="font-size:22px">Test the break-even yourself</h3>
+      <small>My plan puts Phase 2 spending at about US$16,000 a month. This simple model counts commission plus about 0.5% of order value from delivery margin, and leaves subscriptions out, so the plan's own break-even of roughly US$300,000 to 400,000 a month is the figure to quote.</small>
+      <div class="presets"><button class="chip-f" data-a="preset" data-g="15000">End of Phase 1</button><button class="chip-f" data-a="preset" data-g="150000">End of Phase 2</button><button class="chip-f" data-a="preset" data-g="1000000">Month 36</button></div>
+      <label>Monthly order value: <span id="o-g">${usd(S.roi.gmv)}</span><input type="range" min="5000" max="1000000" step="5000" value="${S.roi.gmv}" data-roi="gmv"></label>
+      <label>Commission rate: <span id="o-c">${S.roi.com}%</span><input type="range" min="3" max="7" step="0.5" value="${S.roi.com}" data-roi="com"></label>
+      <div class="gauge"><i id="o-gauge" style="width:${n.cover}%"></i></div>
+      <div class="nums"><div><small>Monthly revenue</small><b id="o-rev">${usd(n.rev)}</b></div><div><small>Against US$16,000 spend</small><b id="o-net" class="${n.net>=0?'good':'bad'}">${n.net>=0?'+':'−'}${usd(Math.abs(n.net))}</b></div><div><small>Break-even order value</small><b id="o-be">${usd(n.be)}</b></div></div></div></section>
+
+  <section><h2>What I will measure</h2><div class="card"><ul class="cols2">${kpis}</ul></div></section>
+
+  <section><h2>Technology foundation</h2><div class="card"><p>Flutter or React Native for mobile, React or Next.js for web, and Node.js or Python with PostgreSQL for the backend. Licensed payment APIs, SMS and WhatsApp notifications, maps with an offline fallback, cloud media storage, and security controls including encryption, role-based access and audit logs.</p></div></section>
+
+  <section><h2>Risks I am aware of</h2><div class="card"><table>${risks}</table></div></section>
+
+  <section><h2>What you have just seen, and what funding builds</h2><p style="color:var(--muted);max-width:62ch;margin-bottom:14px">The demo shows one sample pilot, tomatoes and maize from around Techiman in Bono East. Phase 0 confirms the real region and crops with the first aggregators.</p><div class="cols">
+    <div class="card"><h3>Working in this prototype</h3><ul><li>Role-based flows for buyer, farmer and courier</li><li>Four buyer types (aggregator, trader, caterer, household) with different service fees and delivery towns, so courier options change with the trip</li><li>Buyers choose a courier by rating, distance to the farm, fee and vehicle size, with a best-match suggestion, and rate the courier after delivery</li><li>Listings, ordering and a fee breakdown</li><li>Escrow ledger with partial release for rejected goods</li><li>Courier job flow, live tracking, and delivery confirmation by SMS code or QR code</li><li>Dispute desk: escrow freezes, then refunds, splits or pays the farmer</li><li>English and Twi switch in the app (first draft)</li></ul></div>
+    <div class="card"><h3>Simulated today, built in the funded phases</h3><ul><li>Real mobile money through a licensed payment partner</li><li>SMS and WhatsApp OTP, Ghana Card verification, GPS farm pinning</li><li>Photo and video upload, and real voice notes</li><li>Real GPS tracking and offline-first mobile apps</li><li>Full Twi and Ga support, USSD and SMS ordering</li><li>A market price board</li><li>Security audit and Data Protection registration</li></ul></div></div></section>
+
+  <section style="text-align:center"><h2>Fund the pilot, then judge it on real orders</h2>
+    <p style="color:var(--muted);max-width:58ch;margin:0 auto 18px">Phases 0 and 1, about US$61,000, end with 300+ real orders and a measured dispute rate, so every later dollar rests on evidence.</p>
+    <div class="contact"><a class="btn gold slim" href="https://wa.me/233201283577?text=Hello%20Abraham%2C%20I%20saw%20the%20FarmLink%20Ghana%20demo%20and%20would%20like%20to%20talk." target="_blank" rel="noopener">Chat on WhatsApp</a><a class="btn primary slim" href="mailto:abkarikari23@gmail.com?subject=FarmLink%20Ghana%20investor%20enquiry">Email Abraham</a><button class="btn ghost slim" data-a="tab" data-tab="demo">Run the demo again</button></div>
+    <p class="who-line">Abraham, founder. WhatsApp +233 20 128 3577, email abkarikari23@gmail.com</p></section>
+  </div>`;
+}
+
+/* ---------- render + events ---------- */
+function render(){
+  const body=document.querySelector('.app-body'); const st=body?body.scrollTop:0;
+  $('#app').innerHTML=S.tab==='demo'?demoView():investorView();
+  const b2=document.querySelector('.app-body'); if(b2)b2.scrollTop=st;
+  $('#t-demo').setAttribute('aria-selected',S.tab==='demo');
+  $('#t-inv').setAttribute('aria-selected',S.tab==='inv');
+}
+function updateRoi(){
+  const n=roiNums(); const set=(id,v)=>{const e=$('#'+id);if(e)e.textContent=v};
+  set('o-g',usd(S.roi.gmv));set('o-c',S.roi.com+'%');set('o-rev',usd(n.rev));set('o-be',usd(n.be));
+  const net=$('#o-net'); if(net){net.textContent=(n.net>=0?'+':'−')+usd(Math.abs(n.net));net.className=n.net>=0?'good':'bad'}
+  const g=$('#o-gauge'); if(g)g.style.width=n.cover+'%';
+}
+function release(o,rf){
+  const a=1-rf;
+  o.refund=r2(o.produce*rf*(1+o.feeRate));
+  o.farmerPay=r2(o.produce*a-o.sellerFee*a);
+  o.courierPay=r2(o.delivery*.9);
+  o.platformPay=r2(o.paid-o.refund-o.farmerPay-o.courierPay);
+  const L=S.ledger; L.escrow=r2(L.escrow-o.paid); L.farmers=r2(L.farmers+o.farmerPay); L.couriers=r2(L.couriers+o.courierPay);
+  L.platform=r2(L.platform+o.platformPay); L.refunds=r2(L.refunds+o.refund); L.gmv=r2(L.gmv+o.produce*a); L.done++;
+  o.status='released';
+  const cr=S.couriers.find(x=>x.id===o.courierId);if(cr)cr.trips++;
+  log(o.farmerPay>0?`Order #${o.id} settled. ${o.farmer} paid ${money(o.farmerPay,2)} to ${o.net}.`:`Order #${o.id} settled with a full refund to the buyer.`);
+}
+function act(a,d){
+  const oid=+d.id; const o=S.orders.find(x=>x.id===oid);
+  switch(a){
+    case 'tab':S.tab=d.tab;render();window.scrollTo(0,0);return;
+    case 'role':S.role=d.role;S.tab='demo';if(d.buyer)S.buyer=+d.buyer;if(d.courier)S.courier=+d.courier;if(d.farmer)S.farmer=d.farmer;render();return;
+    case 'bv':S.bv=d.v;render();return;
+    case 'filter':S.filter=d.v;render();return;
+    case 'open':S.sheet={step:'qty',lid:+d.id,qty:1,net:NETS[0],sort:'match',courierId:null};render();return;
+    case 'closeSheet':S.sheet=null;render();return;
+    case 'qdown':S.sheet.qty=Math.max(1,S.sheet.qty-1);S.sheet.courierId=null;render();return;
+    case 'qup':{const l=S.listings.find(x=>x.id===S.sheet.lid);S.sheet.qty=Math.min(l.qty,S.sheet.qty+1);S.sheet.courierId=null;render();return}
+    case 'toCourier':S.sheet.step='courier';render();return;
+    case 'backQty':S.sheet.step='qty';S.sheet.courierId=null;render();return;
+    case 'sort':S.sheet.sort=d.v;render();return;
+    case 'pickCourier':S.sheet.courierId=+d.id;render();return;
+    case 'toPay':if(!S.sheet.courierId){toast('Choose a courier to continue.');return}S.sheet.step='pay';render();return;
+    case 'rate':{
+      const cr=S.couriers.find(x=>x.id===o.courierId),v=+d.v;o.rated=v;
+      if(cr&&cr.trips>0)cr.rating=Math.round(((cr.rating*(cr.trips-1)+v)/cr.trips)*10)/10;
+      render();toast('Thanks. You rated '+o.courierName+' '+v+' out of 5.');return}
+    case 'net':S.sheet.net=d.v;render();return;
+    case 'pay':
+      if(String(S.form.phone||'').replace(/\D/g,'').length<9){toast('Enter a valid mobile money number.');return}
+      S.sheet.step='approve';S.form.pin='';render();return;
+    case 'approve':{
+      if(String(S.form.pin||'').length!==4){toast('Enter a 4 digit PIN to approve.');return}
+      const sh=S.sheet,l=S.listings.find(x=>x.id===sh.lid),c=S.couriers.find(x=>x.id===sh.courierId),b=orderMath(l,sh.qty,c);
+      l.qty-=sh.qty;
+      const no={id:S.nextId++,lid:l.id,crop:l.crop,emoji:l.emoji,farmer:l.farmer,fid:l.farmer,farm:l.farm,region:l.region,unit:l.unit,qty:sh.qty,price:l.price,km:l.km,trip:tripFor(l),dest:curBuyer().town,buyerId:S.buyer,buyerName:curBuyer().name,feeRate:feeFor(curBuyer()),...b,courierId:c.id,courierName:c.name,vehicle:c.vehicle,pickupKm:pickupKm(c,l),net:sh.net,code:String(1000+Math.floor(Math.random()*9000)),status:'escrow',progress:0};
+      S.orders.push(no);S.ledger.escrow=r2(S.ledger.escrow+b.paid);S.courier=c.id;
+      log(`Order #${no.id}: ${money(b.paid,2)} received from ${no.buyerName} via ${sh.net} and held in escrow.`);
+      log(`Delivery job sent to ${c.name} (${c.vehicle}, ${no.pickupKm} km from the farm).`);
+      S.sheet=null;S.role='buyer';S.bv='orders';render();toast(T('Payment received. Your money is held in escrow.'));return}
+    case 'accept':o.status='assigned';log(`${o.courierName} accepted order #${o.id}.`);render();return;
+    case 'pickup':o.status='picked';log(`Order #${o.id} loaded at ${o.farm}. Buyer notified by SMS.`);render();return;
+    case 'start':o.status='transit';o.progress=2;log(`Order #${o.id} left ${o.region}. Live tracking started.`);render();return;
+    case 'confirm':{
+      const code=String(S.form['code_'+o.id]||'').trim();
+      if(code!==o.code){toast('That code does not match. Check the SMS and try again.');return}
+      release(o,parseFloat(S.form['rej_'+o.id]||'0'));
+      delete S.form['code_'+o.id];render();toast(T('Delivery confirmed. The farmer has been paid.'));return}
+    case 'lang':S.lang=d.v;render();return;
+    case 'method':S.form['m_'+oid]=d.v;render();return;
+    case 'scan':
+      log(`Courier scanned the buyer's QR code for order #${o.id}.`);
+      release(o,parseFloat(S.form['rej_'+o.id]||'0'));render();toast('QR code scanned. Delivery confirmed and payment released.');return;
+    case 'dispute':S.disputing=oid;render();return;
+    case 'cancelDispute':S.disputing=null;render();return;
+    case 'photo':S.form['dp_'+oid]=!S.form['dp_'+oid];render();return;
+    case 'submitDispute':{
+      const reason=S.form['dr_'+oid];
+      if(!reason){toast('Choose what went wrong before sending.');return}
+      o.status='disputed';o.dispute={reason,want:S.form['dw_'+oid]||'partial',photos:!!S.form['dp_'+oid]};
+      S.ledger.disputes++;S.disputing=null;
+      log(`Buyer reported a problem on order #${o.id}: ${reason}. Escrow is frozen until the dispute desk decides.`);
+      render();toast('Problem reported. Your money stays in escrow while we review.');return}
+    case 'resolve':{
+      o.resolution={'1':'full refund to the buyer','0.5':'split 50/50 between buyer and farmer','0':'paid to the farmer in full'}[d.v];
+      release(o,parseFloat(d.v));render();toast('Dispute resolved. Escrow has been settled.');return}
+    case 'voice':S.voice=!S.voice;render();return;
+    case 'addListing':{
+      const q=+S.form.lqty,p=+S.form.lprice;
+      if(!(q>0&&p>0)){toast('Enter a quantity and a price above zero.');return}
+      const crop=S.form.lcrop||'Tomatoes',base=S.listings.find(x=>x.farmer===S.farmer);
+      S.listings.unshift({id:S.nextLid++,crop,emoji:CROPS[crop],farmer:S.farmer,farm:base.farm,region:base.region,qty:Math.floor(q),unit:UNITS[crop],price:p,harvest:'Harvested today',km:base.km,verified:base.verified,rating:base.rating,voice:S.voice});
+      log(`${S.farmer} listed ${Math.floor(q)} ${plural(UNITS[crop],Math.floor(q))} of ${crop} at ${money(p)}.`);
+      S.form.lqty='';S.form.lprice='';S.voice=false;render();toast('Listing published. Buyers can see it now.');return}
+    case 'preset':S.roi.gmv=+d.g;render();return;
+    case 'reset':{const lg=S.lang;S=init();S.lang=lg;render();window.scrollTo(0,0);return}
+  }
+}
+document.addEventListener('click',e=>{
+  const b=e.target.closest('[data-a]'); if(!b)return;
+  if(b.dataset.bg&&e.target!==b)return; // only backdrop clicks close the sheet
+  act(b.dataset.a,b.dataset);
+});
+document.addEventListener('input',e=>{
+  const t=e.target;
+  if(t.dataset.roi){S.roi[t.dataset.roi]=parseFloat(t.value);updateRoi();return}
+  if(t.dataset.f){S.form[t.dataset.f]=t.value}
+});
+document.addEventListener('change',e=>{
+  const t=e.target;
+  if(t.dataset.f==='farmer'){S.farmer=t.value;render()}
+  if(t.dataset.f==='lcrop'){S.form.lcrop=t.value;render()}
+  if(t.dataset.f==='courier'){S.courier=+t.value;render()}
+  if(t.dataset.f==='buyer'){S.buyer=+t.value;S.sheet=null;render()}
+});
+setInterval(()=>{
+  let changed=false;
+  S.orders.forEach(o=>{
+    if(o.status!=='transit')return;
+    o.progress=Math.min(100,o.progress+5);
+    document.querySelectorAll(`[data-prog="${o.id}"]`).forEach(el=>el.style.width=o.progress+'%');
+    document.querySelectorAll(`[data-dot="${o.id}"]`).forEach(el=>el.style.left=o.progress+'%');
+    if(o.progress>=100){o.status='arrived';o.arrivedAt=now();log(`Delivery reached ${o.dest}. Code sent by SMS to ${o.buyerName} for order #${o.id}.`);changed=true}
+  });
+  if(changed)render();
+},450);
+render();
+</script>
+</body>
+</html>
